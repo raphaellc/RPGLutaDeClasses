@@ -40,6 +40,7 @@ export type Comando =
     }
   | { tipo: 'maquinasVorazes'; antagonistaId: string; danoBase: number }
   | { tipo: 'policiaDeChoque'; antagonistaId: string; alvoId: string; danoPV: number; danoCM: number }
+  | { tipo: 'ativarTarifaDinamica'; antagonistaId: string; multiplicador: number }
   | { tipo: 'avancarTurno' };
 
 export interface ResultadoComando {
@@ -259,8 +260,30 @@ export function aplicarComando(p: Partida, c: Comando): ResultadoComando {
       return { partida: recalcularFase(subT(p, r.alvo)), eventos: r.eventos };
     }
 
+    case 'ativarTarifaDinamica': {
+      const ant = p.antagonistas.find((a) => a.id === c.antagonistaId);
+      if (!ant) return { partida: p, eventos: [], erro: 'Antagonista não encontrado.' };
+      if (ant.derrotado) return { partida: p, eventos: [], erro: 'Antagonista já derrotado.' };
+      const novosAnts = p.antagonistas.map((a) =>
+        a.id === c.antagonistaId ? { ...a, emTarifaDinamica: true } : a,
+      );
+      return {
+        partida: { ...p, antagonistas: novosAnts },
+        eventos: [{
+          tipo: 'tarifaDinamicaAtivada',
+          antagonistaId: c.antagonistaId,
+          multiplicador: c.multiplicador,
+        }],
+      };
+    }
+
     case 'avancarTurno': {
-      const desbloqueados = p.antagonistas.map((a) => ({ ...a, bloqueadoNoTurno: false }));
+      // Limpa flags de turno: Piquete e Tarifa Dinâmica
+      const desbloqueados = p.antagonistas.map((a) => ({
+        ...a,
+        bloqueadoNoTurno: false,
+        emTarifaDinamica: false,
+      }));
       const proxAtivo = p.turnoAtivoDe === 'jogadores' ? 'sistema' : 'jogadores';
       const proxTurno = proxAtivo === 'jogadores' ? p.turno + 1 : p.turno;
       // Decai status apenas quando o ciclo completo termina (volta para jogadores).

@@ -33,6 +33,7 @@ function classe(e: EventoPartida): string {
     case 'organizacaoEvoluiu': return 'evolucao';
     case 'maquinasVorazes': return 'vermelho';
     case 'policiaDeChoque': return 'vermelho';
+    case 'tarifaDinamicaAtivada': return 'vermelho';
     case 'colapso': return 'vermelho';
     default: return 'evento';
   }
@@ -70,6 +71,8 @@ function textoEvento(e: EventoPartida): string {
       return `MÁQUINAS VORAZES: –${e.danoBase} PV a cada trabalhador (${e.alvosAfetados.length} afetados).`;
     case 'policiaDeChoque':
       return `POLÍCIA DE CHOQUE: –${e.danoPV} PV (força bruta) · –${e.danoCM} CM (Tribunais).`;
+    case 'tarifaDinamicaAtivada':
+      return `⚡ TARIFA DINÂMICA: Algoritmo em Modo Pico — dano ×${e.multiplicador} neste turno.`;
     case 'narrativa':
       return e.texto;
   }

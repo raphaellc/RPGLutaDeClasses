@@ -83,8 +83,18 @@ function gerarAtaque(ant: Antagonista, alvo: Trabalhador, turno: number): Comand
     return out;
   }
 
-  // ─── Senhor das Nuvens: mais-valia + Alienação periódica ────────────────
-  out.push({ tipo: 'extrairMaisValia', antagonistaId: ant.id, alvoId: alvo.id, danoBruto });
+  // ─── Senhor das Nuvens: Tarifa Dinâmica + mais-valia + Alienação ─────────
+  // A cada 3 turnos o algoritmo entra em "Modo Pico" (surge pricing):
+  // o dano é dobrado e o estado fica visível no cartão do antagonista.
+  const MULTIPLICADOR_TARIFA = 2;
+  const emModoPico = turno % 3 === 0;
+  const danoBrutoFinal = emModoPico ? danoBruto * MULTIPLICADOR_TARIFA : danoBruto;
+
+  if (emModoPico) {
+    out.push({ tipo: 'ativarTarifaDinamica', antagonistaId: ant.id, multiplicador: MULTIPLICADOR_TARIFA });
+  }
+  out.push({ tipo: 'extrairMaisValia', antagonistaId: ant.id, alvoId: alvo.id, danoBruto: danoBrutoFinal });
+  // Alienação periódica — a cada 2 turnos (independente da Tarifa)
   if (turno % 2 === 0) {
     out.push({ tipo: 'aplicarStatus', alvoId: alvo.id, status: 'alienacao', turnos: 2 });
   }

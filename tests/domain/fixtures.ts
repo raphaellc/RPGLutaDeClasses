@@ -45,6 +45,7 @@ export function olimpo(): Antagonista {
     capitalAcumulado: 100,
     capitalAcumuladoMax: 100,
     bloqueadoNoTurno: false,
+    emTarifaDinamica: false,
     derrotado: false,
   };
 }

@@ -55,6 +55,7 @@ export function criarPartida(entrada: EntradaCriarPartida): Partida {
       capitalAcumulado: perfil.capitalAcumulado,
       capitalAcumuladoMax: perfil.capitalAcumulado,
       bloqueadoNoTurno: false,
+      emTarifaDinamica: false,
       derrotado: false,
     };
   });
