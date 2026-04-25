@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Partida } from '@domain/entities/Partida';
 import { NivelOrganizacao } from '@domain/entities/Organizacao';
 import { LocalStoragePartidaRepository } from '@infrastructure/repositories/LocalStoragePartidaRepository';
+import { PainelReferencia } from '../components/PainelReferencia';
 
 const repo = new LocalStoragePartidaRepository();
 
@@ -201,6 +202,7 @@ export function Inicio() {
 
   // undefined = carregando; null/[] = sem dados
   const [estado, setEstado] = useState<EstadoPartidas | undefined>(undefined);
+  const [verReferencia, setVerReferencia] = useState(false);
 
   useEffect(() => {
     repo
@@ -298,7 +300,10 @@ export function Inicio() {
         <Link to="/nova">
           <button className={estado?.ativa ? 'secundaria' : 'primaria'}>Nova Partida</button>
         </Link>
+        <button onClick={() => setVerReferencia(true)} title="Referência rápida de regras" style={{ minWidth: 36 }}>?</button>
       </div>
+
+      {verReferencia && <PainelReferencia onFechar={() => setVerReferencia(false)} />}
 
       {/* ── Histórico ── */}
       {estado !== undefined && temHistorico && (

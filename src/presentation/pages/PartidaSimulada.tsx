@@ -8,6 +8,7 @@ import { CartaoAntagonista } from '../components/CartaoAntagonista';
 import { PainelOrganizacao } from '../components/PainelOrganizacao';
 import { LogNarrativo } from '../components/LogNarrativo';
 import { TelaFinal } from '../components/TelaFinal';
+import { PainelReferencia } from '../components/PainelReferencia';
 import { EntradaLog } from '../hooks/useEstadoPartida';
 
 function carregarPartidaInicial(): Partida | null {
@@ -89,6 +90,7 @@ function SimulacaoUI({ inicial, onNova }: { inicial: Partida; onNova: () => void
   const [idx, setIdx] = useState(0);
   const [auto, setAuto] = useState(true);
   const [velocidade, setVelocidade] = useState(700);
+  const [verReferencia, setVerReferencia] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const passo: PassoSimulacao | undefined = passos[idx];
@@ -142,6 +144,7 @@ function SimulacaoUI({ inicial, onNova }: { inicial: Partida; onNova: () => void
 
         <div className="controles">
           <button className="secundaria" onClick={onNova}>Nova Partida</button>
+          <button onClick={() => setVerReferencia(true)} title="Referência rápida de regras" style={{ minWidth: 36 }}>?</button>
           <button onClick={() => { setAuto(false); setIdx(0); }}>|◀</button>
           <button onClick={() => { setAuto(false); setIdx((i) => Math.max(0, i - 1)); }} disabled={idx === 0}>‹</button>
           <button onClick={() => { setAuto(false); setIdx((i) => Math.min(passos.length - 1, i + 1)); }} disabled={terminado}>›</button>
@@ -182,6 +185,8 @@ function SimulacaoUI({ inicial, onNova }: { inicial: Partida; onNova: () => void
           onNova={onNova}
         />
       )}
+
+      {verReferencia && <PainelReferencia onFechar={() => setVerReferencia(false)} />}
 
       {/* ── Tabuleiro ── */}
       <div className="tabuleiro">

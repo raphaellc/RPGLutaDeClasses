@@ -318,3 +318,66 @@ input[type='number'] {
   flex-wrap: wrap;
   align-items: center;
 }
+
+/* ── Drawer de referência ──────────────────────────────────────────────────── */
+
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 100;
+}
+
+.drawer-referencia {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(500px, 96vw);
+  background: var(--cinza-chumbo-escuro);
+  border-left: 3px solid var(--vermelho-revolucao);
+  overflow-y: auto;
+  z-index: 101;
+  padding: var(--esp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+}
+
+.drawer-referencia h3 {
+  font-size: 13px;
+  color: var(--ouro-operario);
+  border-bottom: 1px solid var(--cinza-chumbo-claro);
+  padding-bottom: var(--esp-2);
+  margin-bottom: var(--esp-2);
+}
+
+.drawer-referencia .ref-linha {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: var(--esp-2);
+  font-size: 12px;
+  margin-bottom: var(--esp-2);
+  align-items: start;
+}
+
+.drawer-referencia .ref-linha .ref-chave {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--branco-manifesto);
+}
+
+.drawer-referencia .ref-linha .ref-valor {
+  color: var(--branco-manifesto-2);
+  line-height: 1.5;
+}
+
+.drawer-referencia .ref-nivel {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ouro-operario);
+  letter-spacing: 0.08em;
+  margin: var(--esp-3) 0 var(--esp-1);
+}
