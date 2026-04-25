@@ -1,8 +1,10 @@
 import { Partida } from '@domain/entities/Partida';
 import { EventoPartida } from '@domain/events/EventosDePartida';
+import { Dado } from '@domain/services/Dado';
 import { aplicarComando, Comando } from '../use-cases/AcoesDoTurno';
 import { planejarTurnoSistema } from '../npc/EstrategiaCapital';
 import { planejarTurnoTrabalhadores } from '../npc/EstrategiaProletariado';
+import { DadoCriptografico } from '@infrastructure/rng/DadoCriptografico';
 
 /**
  * Motor de Simulação. Roda automaticamente até a partida terminar
@@ -36,13 +38,21 @@ export interface ResultadoSimulacao {
 
 const MAX_TURNOS_DEFAULT = 40;
 
-export function rodarSimulacao(inicial: Partida, maxTurnos = MAX_TURNOS_DEFAULT): ResultadoSimulacao {
+/**
+ * @param dado  Porta de aleatoriedade — DadoCriptografico por padrão.
+ *              Passe DadoDeterministico nos testes para resultados previsíveis.
+ */
+export function rodarSimulacao(
+  inicial: Partida,
+  maxTurnos = MAX_TURNOS_DEFAULT,
+  dado: Dado = new DadoCriptografico(),
+): ResultadoSimulacao {
   let partida = inicial;
   const passos: PassoSimulacao[] = [];
 
   while (partida.fase === 'emAndamento' && partida.turno <= maxTurnos) {
     const comandos = partida.turnoAtivoDe === 'jogadores'
-      ? planejarTurnoTrabalhadores(partida)
+      ? planejarTurnoTrabalhadores(partida, dado)
       : planejarTurnoSistema(partida);
 
     let algumProgresso = false;
