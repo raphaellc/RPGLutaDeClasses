@@ -26,7 +26,9 @@ export function planejarTurnoSistema(p: Partida): Comando[] {
 }
 
 function escolherAlvo(ant: Antagonista, ativos: ReadonlyArray<Trabalhador>): Trabalhador | undefined {
-  // Senhor das Nuvens prefere Uberizado; Estado prefere quem tem maior CC; Capitalista vai no mais rico em PV.
+  // Senhor das Nuvens: prefere Fantasma da Rede (uberizado mais frágil)
+  // Estado Burguês: prefere maior CC (ameaça à consciência de classe)
+  // Capitalista Industrial: prefere menor PV (o elo mais fraco da linha de produção)
   const ranking: ReadonlyArray<Trabalhador> = (() => {
     switch (ant.arquetipo) {
       case 'senhorNuvens':
@@ -57,25 +59,34 @@ function gerarAtaque(ant: Antagonista, alvo: Trabalhador, turno: number): Comand
 
   const out: Comando[] = [];
 
-  // ─── Capitalista Industrial: Máquinas Vorazes ────────────────────────────
-  // Dano passivo AoE que precede a mais-valia dirigida.
-  // Cresce gradualmente — as máquinas aceleram o ritmo com o tempo.
-  // Não é mitigado por CM: "você não pode negociar com uma máquina."
+  // ─── Capitalista Industrial: Máquinas Vorazes (AoE passivo) ─────────────
   if (ant.arquetipo === 'capitalistaIndustrial') {
     const danoMV = 2 + Math.floor(turno / 4);
     out.push({ tipo: 'maquinasVorazes', antagonistaId: ant.id, danoBase: danoMV });
+    // Mais-valia dirigida ao elo mais fraco (calculada acima)
+    out.push({ tipo: 'extrairMaisValia', antagonistaId: ant.id, alvoId: alvo.id, danoBruto });
+    return out;
   }
 
-  // Ataque principal (mais-valia dirigida a um alvo)
+  // ─── Estado Burguês: Polícia de Choque (split PV + CM) ──────────────────
+  // Força policial → PV direto (sem mitigação por CM ou TL)
+  // Tribunais      → CM direto (custas judiciais, multas)
+  // Escalonamento: cada frente cresce separadamente com o turno.
+  if (ant.arquetipo === 'estadoBurgues') {
+    const danoPV = Math.ceil(danoBruto * 0.6);  // 60 % força bruta
+    const danoCM = Math.floor(danoBruto * 0.4); // 40 % pressão jurídica
+    out.push({ tipo: 'policiaDeChoque', antagonistaId: ant.id, alvoId: alvo.id, danoPV, danoCM });
+    // A cada 3 turnos, os Tribunais também impõem Fetichismo (servidão ideológica ao Estado)
+    if (turno % 3 === 0) {
+      out.push({ tipo: 'aplicarStatus', alvoId: alvo.id, status: 'fetichismo', turnos: 2 });
+    }
+    return out;
+  }
+
+  // ─── Senhor das Nuvens: mais-valia + Alienação periódica ────────────────
   out.push({ tipo: 'extrairMaisValia', antagonistaId: ant.id, alvoId: alvo.id, danoBruto });
-
-  // ─── Senhor das Nuvens: Alienação periódica ───────────────────────────────
-  if (ant.arquetipo === 'senhorNuvens' && turno % 2 === 0) {
+  if (turno % 2 === 0) {
     out.push({ tipo: 'aplicarStatus', alvoId: alvo.id, status: 'alienacao', turnos: 2 });
-  }
-  // ─── Estado Burguês: Fetichismo periódico ────────────────────────────────
-  if (ant.arquetipo === 'estadoBurgues' && turno % 3 === 0) {
-    out.push({ tipo: 'aplicarStatus', alvoId: alvo.id, status: 'fetichismo', turnos: 2 });
   }
 
   return out;

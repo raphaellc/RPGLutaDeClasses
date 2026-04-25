@@ -9,6 +9,7 @@ import { praxisColetiva } from '@domain/services/Praxis';
 import { aplicarStatus, concederImunidade, concederImunidadePermanente, curarStatus, decairStatus } from '@domain/services/StatusService';
 import { aplicarResultadoAcao, CustoSucessoComCusto, ParametrosAcaoDireta, Rolagem } from '@domain/services/AcaoDireta';
 import { aplicarMaquinasVorazes } from '@domain/services/MaquinasVorazes';
+import { aplicarPoliciaDeChoque } from '@domain/services/PoliciaDeChoque';
 import { StatusNegativo } from '@domain/value-objects/Status';
 import { EventoPartida } from '@domain/events/EventosDePartida';
 
@@ -38,6 +39,7 @@ export type Comando =
       custoEscolhido?: CustoSucessoComCusto;
     }
   | { tipo: 'maquinasVorazes'; antagonistaId: string; danoBase: number }
+  | { tipo: 'policiaDeChoque'; antagonistaId: string; alvoId: string; danoPV: number; danoCM: number }
   | { tipo: 'avancarTurno' };
 
 export interface ResultadoComando {
@@ -237,6 +239,24 @@ export function aplicarComando(p: Partida, c: Comando): ResultadoComando {
       }
       const r = aplicarMaquinasVorazes(p.trabalhadores, c.antagonistaId, c.danoBase);
       return { partida: recalcularFase({ ...p, trabalhadores: r.trabalhadores }), eventos: r.eventos };
+    }
+
+    case 'policiaDeChoque': {
+      const ant = p.antagonistas.find((a) => a.id === c.antagonistaId);
+      const alvo = p.trabalhadores.find((t) => t.id === c.alvoId);
+      if (!ant || !alvo) return { partida: p, eventos: [], erro: 'Antagonista ou alvo não encontrado.' };
+      if (ant.derrotado) return { partida: p, eventos: [], erro: 'Antagonista já derrotado.' };
+      if (ant.bloqueadoNoTurno) {
+        return {
+          partida: p,
+          eventos: [{
+            tipo: 'narrativa',
+            texto: `${ant.nome} está bloqueado pelo Piquete — a Polícia de Choque recua por este turno.`,
+          }],
+        };
+      }
+      const r = aplicarPoliciaDeChoque(alvo, c.antagonistaId, c.danoPV, c.danoCM);
+      return { partida: recalcularFase(subT(p, r.alvo)), eventos: r.eventos };
     }
 
     case 'avancarTurno': {

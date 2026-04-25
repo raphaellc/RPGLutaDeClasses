@@ -32,6 +32,7 @@ function classe(e: EventoPartida): string {
       return 'narrativa';
     case 'organizacaoEvoluiu': return 'evolucao';
     case 'maquinasVorazes': return 'vermelho';
+    case 'policiaDeChoque': return 'vermelho';
     case 'colapso': return 'vermelho';
     default: return 'evento';
   }
@@ -67,6 +68,8 @@ function textoEvento(e: EventoPartida): string {
       return `Ação Direta — "${e.intencao}" via ${e.eixo}: ${e.d6}+${e.bonus}=${e.total} (${e.resultado})${e.danoAoCapital ? ` · ${e.danoAoCapital} de dano ao Capital` : ''}.`;
     case 'maquinasVorazes':
       return `MÁQUINAS VORAZES: –${e.danoBase} PV a cada trabalhador (${e.alvosAfetados.length} afetados).`;
+    case 'policiaDeChoque':
+      return `POLÍCIA DE CHOQUE: –${e.danoPV} PV (força bruta) · –${e.danoCM} CM (Tribunais).`;
     case 'narrativa':
       return e.texto;
   }
