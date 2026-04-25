@@ -4,6 +4,9 @@ import { ModoJogo } from '@domain/entities/Partida';
 import { ArquetipoTrabalhador } from '@domain/entities/Trabalhador';
 import { ArquetipoCapital } from '@domain/entities/Antagonista';
 import { criarPartida, DefinicaoTrabalhador, DefinicaoAntagonista } from '@application/use-cases/CriarPartida';
+import { LocalStoragePartidaRepository } from '@infrastructure/repositories/LocalStoragePartidaRepository';
+
+const repo = new LocalStoragePartidaRepository();
 
 const ARQ_OPCOES: { id: ArquetipoTrabalhador; nome: string; resumo: string }[] = [
   { id: 'ferreiroEngrenagens', nome: 'Ferreiro de Engrenagens', resumo: 'Proletário Fabril — descanso garantido.' },
@@ -54,6 +57,8 @@ export function CriacaoPartida() {
       : [{ arquetipo: antagonista }];
     const partida = criarPartida({ modo, trabalhadores, antagonistas: ants, nomeOrganizacao: nomeOrg });
     sessionStorage.setItem('rpg-luta:partida-corrente', JSON.stringify(partida));
+    // Persiste imediatamente para o Diário da Luta (turno-a-turno) e para "Continuar"
+    if (modo === 'turnoATurno') void repo.salvar(partida);
     nav(modo === 'simulado' ? '/simulado' : '/turno');
   }
 
