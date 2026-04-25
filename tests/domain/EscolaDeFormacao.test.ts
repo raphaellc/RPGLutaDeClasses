@@ -8,6 +8,7 @@ import { beto } from './fixtures';
 function partidaCom(nivel: 1 | 2 | 3 | 4, tl: number, cm: number): Partida {
   const base = criarPartida({
     modo: 'turnoATurno',
+      dificuldade: 'normal',
     trabalhadores: [
       { nome: 'Joana', arquetipo: 'ferreiroEngrenagens' },
       { nome: 'Beto', arquetipo: 'fantasmaRede' },

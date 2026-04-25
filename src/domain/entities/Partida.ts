@@ -6,6 +6,8 @@ export type ModoJogo = 'simulado' | 'turnoATurno';
 
 export type FasePartida = 'emAndamento' | 'vitoriaProletaria' | 'derrotaDoGrupo';
 
+export type DificuldadeJogo = 'facil' | 'normal' | 'dificil';
+
 /**
  * Partida — agregado raiz que une jogadores, antagonistas, organização e estado de turno.
  * Agregado imutável: cada serviço retorna uma nova Partida.
@@ -13,6 +15,7 @@ export type FasePartida = 'emAndamento' | 'vitoriaProletaria' | 'derrotaDoGrupo'
 export interface Partida {
   readonly id: string;
   readonly modo: ModoJogo;
+  readonly dificuldade: DificuldadeJogo;
   readonly turno: number;            // 1-based
   readonly turnoAtivoDe: 'jogadores' | 'sistema';
   readonly trabalhadores: ReadonlyArray<Trabalhador>;

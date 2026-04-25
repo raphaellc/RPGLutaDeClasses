@@ -10,6 +10,7 @@ import { joana, beto } from './fixtures';
 function partidaComEstado(): Partida {
   return criarPartida({
     modo: 'turnoATurno',
+      dificuldade: 'normal',
     trabalhadores: [
       { nome: 'Joana', arquetipo: 'ferreiroEngrenagens' },
       { nome: 'Beto', arquetipo: 'fantasmaRede' },
@@ -195,6 +196,7 @@ describe('EstrategiaCapital — Estado Burguês usa policiaDeChoque', () => {
     const { planejarTurnoSistema } = await import('@application/npc/EstrategiaCapital');
     const p = criarPartida({
       modo: 'turnoATurno',
+      dificuldade: 'normal',
       trabalhadores: [{ nome: 'Joana', arquetipo: 'ferreiroEngrenagens' }],
       antagonistas: [{ arquetipo: 'capitalistaIndustrial' }],
     });

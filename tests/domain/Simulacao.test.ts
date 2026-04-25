@@ -6,6 +6,7 @@ describe('Motor de Simulação', () => {
   it('roda até o fim sem ficar em loop infinito', () => {
     const partida = criarPartida({
       modo: 'simulado',
+      dificuldade: 'normal',
       trabalhadores: [
         { nome: 'Joana', arquetipo: 'ferreiroEngrenagens' },
         { nome: 'Beto', arquetipo: 'fantasmaRede' },
@@ -21,6 +22,7 @@ describe('Motor de Simulação', () => {
   it('fecha cada passo com transição de estado consistente', () => {
     const partida = criarPartida({
       modo: 'simulado',
+      dificuldade: 'normal',
       trabalhadores: [{ nome: 'Joana', arquetipo: 'ferreiroEngrenagens' }],
       antagonistas: [{ arquetipo: 'capitalistaIndustrial' }],
     });
@@ -34,6 +36,7 @@ describe('Motor de Simulação', () => {
   it('devolve estatisticas com shape correto', () => {
     const partida = criarPartida({
       modo: 'simulado',
+      dificuldade: 'normal',
       trabalhadores: [
         { nome: 'Joana', arquetipo: 'ferreiroEngrenagens' },
         { nome: 'Beto', arquetipo: 'fantasmaRede' },
@@ -52,6 +55,7 @@ describe('Motor de Simulação', () => {
   it('não trava com múltiplos antagonistas (confronto total)', () => {
     const partida = criarPartida({
       modo: 'simulado',
+      dificuldade: 'normal',
       trabalhadores: [
         { nome: 'Joana', arquetipo: 'ferreiroEngrenagens' },
         { nome: 'Beto', arquetipo: 'fantasmaRede' },
@@ -72,6 +76,7 @@ describe('Motor de Simulação', () => {
   it('respeitata maxTurnos mesmo sem vitória', () => {
     const partida = criarPartida({
       modo: 'simulado',
+      dificuldade: 'normal',
       trabalhadores: [{ nome: 'Joana', arquetipo: 'ferreiroEngrenagens' }],
       antagonistas: [{ arquetipo: 'estadoBurgues' }], // boss muito difícil
     });

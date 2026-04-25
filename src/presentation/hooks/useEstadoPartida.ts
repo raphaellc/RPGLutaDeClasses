@@ -5,6 +5,8 @@ import { Comando } from '@application/use-cases/AcoesDoTurno';
 import { encerrarTurnoJogadores, executarAcao } from '@application/game-modes/MotorTurnoATurno';
 import { LocalStoragePartidaRepository } from '@infrastructure/repositories/LocalStoragePartidaRepository';
 
+export type { EventoPartida };
+
 const repo = new LocalStoragePartidaRepository();
 
 export interface EntradaLog {
@@ -20,6 +22,8 @@ export function useEstadoPartida(inicial: Partida) {
   const [partida, setPartida] = useState<Partida>(inicial);
   const [log, setLog] = useState<EntradaLog[]>([]);
   const [erro, setErro] = useState<string | undefined>();
+  // Eventos do último turno do Capital — exibidos no RelatorioCapital
+  const [relatorioCapital, setRelatorioCapital] = useState<ReadonlyArray<EventoPartida>>([]);
 
   const aplicar = useCallback(
     (cmd: Comando) => {
@@ -51,8 +55,11 @@ export function useEstadoPartida(inicial: Partida) {
       ...prev,
       ...r.eventos.map((e) => ({ id: novoIdLog(), evento: e, turno: r.partida.turno })),
     ]);
+    setRelatorioCapital(r.eventos); // abre o modal de relatório
     void repo.salvar(r.partida);
   }, [partida]);
+
+  const limparRelatorio = useCallback(() => setRelatorioCapital([]), []);
 
   const resumo = useMemo(() => {
     const ativos = partida.trabalhadores.filter((t) => !t.colapsado).length;
@@ -60,5 +67,5 @@ export function useEstadoPartida(inicial: Partida) {
     return { ativos, antagonistasVivos };
   }, [partida]);
 
-  return { partida, log, erro, aplicar, encerrarTurno, resumo };
+  return { partida, log, erro, aplicar, encerrarTurno, resumo, relatorioCapital, limparRelatorio };
 }
