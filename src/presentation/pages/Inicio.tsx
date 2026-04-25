@@ -1,11 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Partida } from '@domain/entities/Partida';
+import { NivelOrganizacao } from '@domain/entities/Organizacao';
 import { LocalStoragePartidaRepository } from '@infrastructure/repositories/LocalStoragePartidaRepository';
 
 const repo = new LocalStoragePartidaRepository();
 
-// ── Continuar ─────────────────────────────────────────────────────────────────
+const NOME_NIVEL: Record<NivelOrganizacao, string> = {
+  1: 'Célula',
+  2: 'Sindicato Combativo',
+  3: 'Partido / Movimento de Massas',
+  4: 'Conselho / Comuna',
+};
+
+// ── Card de partida em andamento ──────────────────────────────────────────────
 
 function CardContinuar({ partida, onContinuar, onAbandonar }: {
   partida: Partida;
@@ -38,17 +46,13 @@ function CardContinuar({ partida, onContinuar, onAbandonar }: {
       <div style={{ fontSize: 13, color: 'var(--branco-manifesto-2)', display: 'flex', gap: 16, flexWrap: 'wrap' }}>
         <span>⏱ Turno {partida.turno}</span>
         <span>👷 {ativos}/{partida.trabalhadores.length} trabalhadores ativos</span>
-        <span>🏭 Antagonistas: {antVivos.map((a) => a.nome).join(', ') || '—'}</span>
-        <span>🏴 Org. nível {partida.organizacao.nivel}</span>
+        <span>🏭 {antVivos.map((a) => a.nome).join(', ') || '—'}</span>
+        <span>🏴 {NOME_NIVEL[partida.organizacao.nivel]}</span>
       </div>
 
       <div className="controles" style={{ marginTop: 4 }}>
         <button className="primaria" onClick={onContinuar}>Continuar Partida</button>
-        <button
-          className="secundaria"
-          onClick={onAbandonar}
-          title="Descarta esta partida permanentemente"
-        >
+        <button className="secundaria" onClick={onAbandonar} title="Descarta esta partida permanentemente">
           Abandonar
         </button>
       </div>
@@ -56,25 +60,166 @@ function CardContinuar({ partida, onContinuar, onAbandonar }: {
   );
 }
 
+// ── Diário de entrada ─────────────────────────────────────────────────────────
+
+function EntradaDiario({ partida, onRemover }: { partida: Partida; onRemover: () => void }) {
+  const [expandido, setExpandido] = useState(false);
+  const vitoria = partida.fase === 'vitoriaProletaria';
+
+  const colapsados  = partida.trabalhadores.filter((t) => t.colapsado);
+  const derrotados  = partida.antagonistas.filter((a) => a.derrotado);
+  const escolaFundada = partida.trabalhadores.some((t) => t.imunidadesPermanentes.length > 0);
+
+  const dataISO = new Date(partida.criadaEm).toLocaleDateString('pt-BR', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+  });
+
+  return (
+    <div
+      className="painel"
+      style={{
+        borderLeft: `4px solid ${vitoria ? 'var(--ouro-operario)' : 'var(--cinza-chumbo-claro)'}`,
+        marginBottom: 8,
+        cursor: 'pointer',
+      }}
+      onClick={() => setExpandido((x) => !x)}
+    >
+      {/* ── Linha de resumo ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <span style={{
+          fontFamily: 'var(--fonte-display)',
+          fontSize: 18,
+          color: vitoria ? 'var(--ouro-operario)' : 'var(--cinza-chumbo-claro)',
+          minWidth: 20,
+        }}>
+          {vitoria ? '★' : '✕'}
+        </span>
+
+        <strong style={{ color: vitoria ? 'var(--ouro-operario)' : 'inherit' }}>
+          {partida.organizacao.nome}
+        </strong>
+
+        <span className={`badge ${vitoria ? 'ouro' : ''}`} style={vitoria ? {} : { background: 'var(--cinza-chumbo)' }}>
+          {vitoria ? 'VITÓRIA' : 'DERROTA'}
+        </span>
+
+        <span style={{ fontSize: 12, color: 'var(--branco-manifesto-2)', marginLeft: 'auto' }}>
+          T{partida.turno} · {dataISO}
+        </span>
+
+        <span style={{ fontSize: 11, color: 'var(--branco-manifesto-2)' }}>{expandido ? '▲' : '▼'}</span>
+      </div>
+
+      {/* ── Detalhe expandido ── */}
+      {expandido && (
+        <div
+          style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', color: 'var(--branco-manifesto-2)' }}>
+            <span>🏴 {NOME_NIVEL[partida.organizacao.nivel]}</span>
+            <span>⏱ {partida.turno} turnos</span>
+            <span>👷 {partida.trabalhadores.length - colapsados.length}/{partida.trabalhadores.length} sobreviventes</span>
+          </div>
+
+          {derrotados.length > 0 && (
+            <div>
+              <span style={{ color: 'var(--ouro-operario)' }}>★ Antagonistas derrubados: </span>
+              {derrotados.map((a) => a.nome).join(', ')}
+            </div>
+          )}
+
+          {colapsados.length > 0 && (
+            <div>
+              <span style={{ color: 'var(--vermelho-revolucao)' }}>✕ Colapsados: </span>
+              {colapsados.map((t) => t.nome).join(', ')}
+            </div>
+          )}
+
+          {escolaFundada && (
+            <div style={{ color: 'var(--ouro-operario)' }}>★ Escola de Formação fundada</div>
+          )}
+
+          <div style={{ marginTop: 4 }}>
+            <button
+              className="secundaria"
+              style={{ fontSize: 11, padding: '2px 8px' }}
+              onClick={onRemover}
+            >
+              Remover do diário
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Diário completo ───────────────────────────────────────────────────────────
+
+function DiarioDaLuta({ historico, onRemover, onLimpar }: {
+  historico: Partida[];
+  onRemover: (id: string) => void;
+  onLimpar: () => void;
+}) {
+  const vitorias = historico.filter((p) => p.fase === 'vitoriaProletaria').length;
+  const derrotas  = historico.length - vitorias;
+
+  return (
+    <>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 8 }}>
+        <h3 className="subtitulo" style={{ margin: 0 }}>Diário da Luta</h3>
+        <span style={{ fontSize: 12, color: 'var(--branco-manifesto-2)' }}>
+          {vitorias}★ {derrotas}✕
+        </span>
+        <button
+          className="secundaria"
+          style={{ fontSize: 11, padding: '2px 8px', marginLeft: 'auto' }}
+          onClick={onLimpar}
+          title="Remove todas as partidas concluídas do histórico"
+        >
+          Limpar histórico
+        </button>
+      </div>
+
+      {historico.map((p) => (
+        <EntradaDiario key={p.id} partida={p} onRemover={() => onRemover(p.id)} />
+      ))}
+    </>
+  );
+}
+
 // ── Página principal ──────────────────────────────────────────────────────────
+
+interface EstadoPartidas {
+  ativa: Partida | null;
+  historico: Partida[];
+}
 
 export function Inicio() {
   const nav = useNavigate();
 
-  // undefined = ainda carregando, null = nenhuma, Partida = encontrada
-  const [partidaSalva, setPartidaSalva] = useState<Partida | null | undefined>(undefined);
+  // undefined = carregando; null/[] = sem dados
+  const [estado, setEstado] = useState<EstadoPartidas | undefined>(undefined);
 
   useEffect(() => {
     repo
       .listar()
       .then((partidas) => {
-        // Apenas turno-a-turno é persistido — simulado não passa por useEstadoPartida
-        const candidatas = partidas
+        // Turno-a-turno em andamento — a mais avançada se houver múltiplas
+        const ativas = partidas
           .filter((p) => p.fase === 'emAndamento' && p.modo === 'turnoATurno')
-          .sort((a, b) => b.turno - a.turno); // mais avançada primeiro
-        setPartidaSalva(candidatas[0] ?? null);
+          .sort((a, b) => b.turno - a.turno);
+
+        // Histórico — partidas concluídas, mais recentes primeiro (até 20)
+        const concluidas = partidas
+          .filter((p) => p.fase !== 'emAndamento')
+          .sort((a, b) => new Date(b.criadaEm).getTime() - new Date(a.criadaEm).getTime())
+          .slice(0, 20);
+
+        setEstado({ ativa: ativas[0] ?? null, historico: concluidas });
       })
-      .catch(() => setPartidaSalva(null)); // falha silenciosa (modo incógnito, storage cheio…)
+      .catch(() => setEstado({ ativa: null, historico: [] }));
   }, []);
 
   function continuar(p: Partida) {
@@ -84,8 +229,23 @@ export function Inicio() {
 
   async function abandonar(id: string) {
     await repo.remover(id);
-    setPartidaSalva(null);
+    setEstado((prev) => prev ? { ...prev, ativa: null } : prev);
   }
+
+  async function removerHistorico(id: string) {
+    await repo.remover(id);
+    setEstado((prev) =>
+      prev ? { ...prev, historico: prev.historico.filter((p) => p.id !== id) } : prev,
+    );
+  }
+
+  async function limparHistorico() {
+    if (!estado) return;
+    await Promise.all(estado.historico.map((p) => repo.remover(p.id)));
+    setEstado((prev) => prev ? { ...prev, historico: [] } : prev);
+  }
+
+  const temHistorico = (estado?.historico.length ?? 0) > 0;
 
   return (
     <main className="intro">
@@ -114,27 +274,42 @@ export function Inicio() {
         <li><strong>Simulado:</strong> assista uma partida rodando sozinha, com heurísticas para os dois lados.</li>
       </ul>
 
-      {/* ── Partida salva ── */}
-      {partidaSalva === undefined && (
+      {/* ── Estado de carregamento ── */}
+      {estado === undefined && (
         <p style={{ color: 'var(--branco-manifesto-2)', fontSize: 13, marginTop: 24 }}>
           Verificando partidas salvas…
         </p>
       )}
 
-      {partidaSalva && (
+      {/* ── Partida em andamento ── */}
+      {estado?.ativa && (
         <>
           <h3 className="subtitulo" style={{ marginTop: 32 }}>Retomar a luta</h3>
           <CardContinuar
-            partida={partidaSalva}
-            onContinuar={() => continuar(partidaSalva)}
-            onAbandonar={() => abandonar(partidaSalva.id)}
+            partida={estado.ativa}
+            onContinuar={() => continuar(estado.ativa!)}
+            onAbandonar={() => abandonar(estado.ativa!.id)}
           />
         </>
       )}
 
-      <div className="controles" style={{ marginTop: partidaSalva ? 0 : 32 }}>
-        <Link to="/nova"><button className={partidaSalva ? 'secundaria' : 'primaria'}>Nova Partida</button></Link>
+      {/* ── Ações principais ── */}
+      <div className="controles" style={{ marginTop: estado?.ativa ? 0 : 32 }}>
+        <Link to="/nova">
+          <button className={estado?.ativa ? 'secundaria' : 'primaria'}>Nova Partida</button>
+        </Link>
       </div>
+
+      {/* ── Histórico ── */}
+      {estado !== undefined && temHistorico && (
+        <div style={{ marginTop: 40 }}>
+          <DiarioDaLuta
+            historico={estado.historico}
+            onRemover={removerHistorico}
+            onLimpar={limparHistorico}
+          />
+        </div>
+      )}
 
       <h3 className="subtitulo" style={{ marginTop: 48 }}>Arquitetura</h3>
       <p style={{ fontSize: 12, color: 'var(--branco-manifesto-2)' }}>
