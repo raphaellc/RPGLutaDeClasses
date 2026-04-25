@@ -219,6 +219,16 @@ function AcoesTrabalhador({ trabalhador, outros, antagonistas, organizacao, apli
           MANIFESTAÇÃO (–10 TL Fundo)
         </button>
       )}
+      {organizacao.nivel >= 3 && (
+        <button
+          className="secundaria"
+          disabled={organizacao.fundoDeGreve.tl < 15 || organizacao.fundoDeGreve.cm < 5}
+          onClick={() => aplicar({ tipo: 'escolaDeFormacao' })}
+          title="Imuniza permanentemente toda a classe contra Alienação e Fetichismo"
+        >
+          ESCOLA DE FORMAÇÃO (–15 TL, –5 CM)
+        </button>
+      )}
       {alvoAntag && organizacao.nivel >= 4 && (
         <button
           className="primaria"

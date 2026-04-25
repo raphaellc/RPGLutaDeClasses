@@ -48,14 +48,30 @@ export function planejarTurnoTrabalhadores(p: Partida): Comando[] {
     return comandos;
   }
 
-  // 3) Manifestação de Massas — escudo defensivo se Nível 3 e classe vulnerável.
-  const todosSemImunidade = ativos.every((t) => t.imunidadeStatusTurnos === 0);
+  // 3a) Escola de Formação — investimento permanente. Prioritária se ainda
+  // não foi fundada e a organização tem recursos. Pagamento único.
+  const algumSemImunidadePermanente = ativos.some(
+    (t) => !t.imunidadesPermanentes.includes('alienacao') || !t.imunidadesPermanentes.includes('fetichismo'),
+  );
+  if (
+    p.organizacao.nivel >= 3 &&
+    p.organizacao.fundoDeGreve.tl >= 15 &&
+    p.organizacao.fundoDeGreve.cm >= 5 &&
+    algumSemImunidadePermanente
+  ) {
+    comandos.push({ tipo: 'escolaDeFormacao' });
+  }
+
+  // 3b) Manifestação de Massas — escudo defensivo *temporário* se ainda há
+  // alguém vulnerável a status (não coberto pela Escola).
+  const todosSemImunidadeTemp = ativos.every((t) => t.imunidadeStatusTurnos === 0);
   const algumComStatus = ativos.some((t) => t.status.length > 0);
   if (
     p.organizacao.nivel >= 3 &&
     p.organizacao.fundoDeGreve.tl >= 10 &&
-    todosSemImunidade &&
-    algumComStatus
+    todosSemImunidadeTemp &&
+    algumComStatus &&
+    algumSemImunidadePermanente // se Escola já cobriu todos, dispensa
   ) {
     comandos.push({ tipo: 'manifestacaoDeMassas' });
   }

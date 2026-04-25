@@ -65,6 +65,7 @@ src/
 | RF07 / UC05 — Combate coletivo     | [`AcaoColetiva.ts`](src/domain/services/AcaoColetiva.ts)     |
 | RF08 — Status (Alienação etc.)     | [`StatusService.ts`](src/domain/services/StatusService.ts)   |
 | Manifestação de Massas (Nível 3)   | [`AcoesDoTurno.ts`](src/application/use-cases/AcoesDoTurno.ts) — caso `manifestacaoDeMassas` |
+| Escola de Formação (Nível 3)       | [`AcoesDoTurno.ts`](src/application/use-cases/AcoesDoTurno.ts) — caso `escolaDeFormacao` + `concederImunidadePermanente` em [`StatusService.ts`](src/domain/services/StatusService.ts) |
 | Cap. 3 — Resolução por 1d6         | [`AcaoDireta.ts`](src/domain/services/AcaoDireta.ts) + [`IniciarAcaoDireta.ts`](src/application/use-cases/IniciarAcaoDireta.ts) |
 | Antagonistas como NPCs             | [`EstrategiaCapital.ts`](src/application/npc/EstrategiaCapital.ts) |
 
@@ -74,7 +75,8 @@ src/
 | ------------- | ----------------------------------------------------------------------------------------- |
 | **Alienação** | Reduz a contribuição de práxis pela metade e bloqueia o trabalhador de doar Solidariedade |
 | **Fetichismo**| Anula a mitigação por CM no cálculo de mais-valia (a mercadoria deixa de "proteger")      |
-| **Imunidade** | Após Manifestação de Massas / Escola de Formação: ignora novas aplicações por N turnos    |
+| **Imunidade temporária** | Manifestação de Massas: bloqueia QUALQUER novo status por 2 turnos        |
+| **Imunidade permanente** | Escola de Formação: imuniza permanentemente contra Alienação e Fetichismo |
 
 Status decaem 1 turno por ciclo completo (quando o turno volta para os jogadores). `Tradutor de Verdades` cura via ação **Desmistificação**.
 

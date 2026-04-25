@@ -6,7 +6,7 @@ import { aplicarCicloSemanal, EscolhaUberizado } from '@domain/services/CicloSem
 import { contribuirParaOrganizacao } from '@domain/services/EvolucaoOrganizacao';
 import { convocarPiquete, convocarGreveGeral, expropriar } from '@domain/services/AcaoColetiva';
 import { praxisColetiva } from '@domain/services/Praxis';
-import { aplicarStatus, concederImunidade, curarStatus, decairStatus } from '@domain/services/StatusService';
+import { aplicarStatus, concederImunidade, concederImunidadePermanente, curarStatus, decairStatus } from '@domain/services/StatusService';
 import { aplicarResultadoAcao, CustoSucessoComCusto, ParametrosAcaoDireta, Rolagem } from '@domain/services/AcaoDireta';
 import { StatusNegativo } from '@domain/value-objects/Status';
 import { EventoPartida } from '@domain/events/EventosDePartida';
@@ -23,6 +23,7 @@ export type Comando =
   | { tipo: 'piquete'; antagonistaId: string }
   | { tipo: 'greveGeral'; antagonistaId: string }
   | { tipo: 'manifestacaoDeMassas' }
+  | { tipo: 'escolaDeFormacao' }
   | { tipo: 'expropriar'; antagonistaId: string }
   | { tipo: 'aplicarStatus'; alvoId: string; status: StatusNegativo; turnos: number }
   | { tipo: 'curarStatus'; alvoId: string; status: StatusNegativo }
@@ -261,8 +262,52 @@ export function aplicarComando(p: Partida, c: Comando): ResultadoComando {
         partida: { ...p, organizacao: novaOrg, trabalhadores },
         eventos: [{
           tipo: 'narrativa',
-          texto: `MANIFESTAÇÃO DE MASSAS! Por ${TURNOS_IMUNIDADE} turnos a classe está blindada contra Alienação e Fetichismo.`,
+          texto: `MANIFESTAÇÃO DE MASSAS! Por ${TURNOS_IMUNIDADE} turnos a classe está blindada contra qualquer status negativo.`,
         }],
+      };
+    }
+
+    case 'escolaDeFormacao': {
+      const CUSTO_ESCOLA_TL = 15;
+      const CUSTO_ESCOLA_CM = 5;
+      const TIPOS_IMUNIZADOS = ['alienacao', 'fetichismo'] as const;
+      if (p.organizacao.nivel < 3) {
+        return { partida: p, eventos: [], erro: 'Organização precisa estar no Nível 3 para fundar a Escola de Formação.' };
+      }
+      if (p.organizacao.fundoDeGreve.tl < CUSTO_ESCOLA_TL || p.organizacao.fundoDeGreve.cm < CUSTO_ESCOLA_CM) {
+        return { partida: p, eventos: [], erro: 'Fundo de Greve insuficiente — sem recursos para formação.' };
+      }
+      // Idempotência: se TODOS os trabalhadores já são imunes a TODOS os tipos,
+      // não cobra recursos e devolve narrativa explicativa.
+      const todosJaImunes = p.trabalhadores.every((t) =>
+        TIPOS_IMUNIZADOS.every((tipo) => t.imunidadesPermanentes.includes(tipo)),
+      );
+      if (todosJaImunes) {
+        return {
+          partida: p,
+          eventos: [{ tipo: 'narrativa', texto: 'A Escola de Formação já consolidou a consciência da classe — sem novos imunizados.' }],
+        };
+      }
+      const eventos: EventoPartida[] = [];
+      const trabalhadores = p.trabalhadores.map((t) => {
+        const r = concederImunidadePermanente(t, TIPOS_IMUNIZADOS);
+        eventos.push(...r.eventos);
+        return r.alvo;
+      });
+      const novaOrg = {
+        ...p.organizacao,
+        fundoDeGreve: {
+          tl: p.organizacao.fundoDeGreve.tl - CUSTO_ESCOLA_TL,
+          cm: p.organizacao.fundoDeGreve.cm - CUSTO_ESCOLA_CM,
+        },
+      };
+      eventos.unshift({
+        tipo: 'narrativa',
+        texto: `ESCOLA DE FORMAÇÃO fundada — a classe assimila Marx, Lênin e Rosa. Imunidade permanente a Alienação e Fetichismo.`,
+      });
+      return {
+        partida: { ...p, organizacao: novaOrg, trabalhadores },
+        eventos,
       };
     }
   }

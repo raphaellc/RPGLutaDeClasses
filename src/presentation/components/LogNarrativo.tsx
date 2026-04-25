@@ -25,7 +25,11 @@ export function LogNarrativo({ entradas }: { entradas: ReadonlyArray<EntradaLog>
 
 function classe(e: EventoPartida): string {
   switch (e.tipo) {
-    case 'narrativa': return 'narrativa';
+    case 'narrativa':
+      // Narrativas-marco (MANIFESTAÇÃO, ESCOLA DE FORMAÇÃO etc.) ganham
+      // o destaque visual de "evolução" — são pontos de virada da campanha.
+      if (/^(MANIFESTA|ESCOLA|EXPROPRIA|GREVE GERAL)/.test(e.texto)) return 'evolucao';
+      return 'narrativa';
     case 'organizacaoEvoluiu': return 'evolucao';
     default: return 'evento';
   }

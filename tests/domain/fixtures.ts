@@ -16,6 +16,7 @@ export function joana(): Trabalhador {
     recursos: recursos(80, 10, 5, 0),
     status: [],
     imunidadeStatusTurnos: 0,
+    imunidadesPermanentes: [],
     colapsado: false,
   };
 }
@@ -31,6 +32,7 @@ export function beto(): Trabalhador {
     recursos: recursos(30, 2, 1, 0),
     status: [],
     imunidadeStatusTurnos: 0,
+    imunidadesPermanentes: [],
     colapsado: false,
   };
 }

@@ -27,8 +27,17 @@ export function CartaoTrabalhador({ trabalhador: t, destaque, acoes }: Props) {
         <span className="label">Consciência</span>
         <span className="valor">{t.recursos.cc}</span>
         <span style={{ flex: 1 }} />
+        {t.imunidadesPermanentes.length > 0 && (
+          <span
+            className="badge ouro"
+            title={`Imunidade permanente (Escola de Formação): ${t.imunidadesPermanentes.join(', ')}`}
+            style={{ marginLeft: 8 }}
+          >
+            ✦✦ {t.imunidadesPermanentes.length}/2
+          </span>
+        )}
         {t.imunidadeStatusTurnos > 0 && (
-          <span className="badge ouro" title="Imune a novos status negativos">
+          <span className="badge ouro" title="Imune a novos status (Manifestação)" style={{ marginLeft: 8 }}>
             ✦ Escudo {t.imunidadeStatusTurnos}t
           </span>
         )}

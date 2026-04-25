@@ -14,6 +14,15 @@ export function aplicarStatus(
   turnos: number,
 ): { alvo: Trabalhador; eventos: EventoPartida[] } {
   if (alvo.colapsado) return { alvo, eventos: [] };
+  if (alvo.imunidadesPermanentes.includes(tipo)) {
+    return {
+      alvo,
+      eventos: [{
+        tipo: 'narrativa',
+        texto: `${alvo.nome} ignora a tentativa de ${tipo} — a Escola de Formação dissipou a ilusão antes que ela pegasse.`,
+      }],
+    };
+  }
   if (alvo.imunidadeStatusTurnos > 0) {
     return {
       alvo,
@@ -67,5 +76,38 @@ export function concederImunidade(alvo: Trabalhador, turnos: number): Trabalhado
   return {
     ...alvo,
     imunidadeStatusTurnos: Math.max(alvo.imunidadeStatusTurnos, Math.max(0, turnos)),
+  };
+}
+
+/**
+ * Concede imunidade *permanente* a tipos específicos de status (ex.: Escola de
+ * Formação imuniza contra Alienação e Fetichismo). Status já ativos do mesmo
+ * tipo são curados — a educação dissipa a ilusão presente. Idempotente.
+ */
+export function concederImunidadePermanente(
+  alvo: Trabalhador,
+  tipos: ReadonlyArray<StatusNegativo>,
+): { alvo: Trabalhador; eventos: EventoPartida[] } {
+  if (alvo.colapsado) return { alvo, eventos: [] };
+
+  const eventos: EventoPartida[] = [];
+  const tiposNovos = tipos.filter((t) => !alvo.imunidadesPermanentes.includes(t));
+
+  // Cura status ativos dos tipos imunizados.
+  const status = alvo.status.filter((s) => {
+    if (tipos.includes(s.tipo)) {
+      eventos.push({ tipo: 'statusCurado', alvoId: alvo.id, status: s.tipo });
+      return false;
+    }
+    return true;
+  });
+
+  return {
+    alvo: {
+      ...alvo,
+      status,
+      imunidadesPermanentes: [...alvo.imunidadesPermanentes, ...tiposNovos],
+    },
+    eventos,
   };
 }
