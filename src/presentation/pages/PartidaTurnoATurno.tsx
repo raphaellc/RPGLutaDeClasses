@@ -179,6 +179,15 @@ function AcoesTrabalhador({ trabalhador, outros, antagonistas, organizacao, apli
           GREVE GERAL
         </button>
       )}
+      {organizacao.nivel >= 3 && (
+        <button
+          className="secundaria"
+          disabled={organizacao.fundoDeGreve.tl < 10}
+          onClick={() => aplicar({ tipo: 'manifestacaoDeMassas' })}
+        >
+          MANIFESTAÇÃO (–10 TL Fundo)
+        </button>
+      )}
       {alvoAntag && organizacao.nivel >= 4 && (
         <button
           className="primaria"

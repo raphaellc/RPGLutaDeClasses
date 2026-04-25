@@ -15,6 +15,7 @@ export function joana(): Trabalhador {
     limites: perfil.limites,
     recursos: recursos(80, 10, 5, 0),
     status: [],
+    imunidadeStatusTurnos: 0,
     colapsado: false,
   };
 }
@@ -29,6 +30,7 @@ export function beto(): Trabalhador {
     limites: perfil.limites,
     recursos: recursos(30, 2, 1, 0),
     status: [],
+    imunidadeStatusTurnos: 0,
     colapsado: false,
   };
 }

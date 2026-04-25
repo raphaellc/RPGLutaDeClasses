@@ -64,7 +64,18 @@ src/
 | RF05+RF06 / UC04 — Evolução da Org | [`EvolucaoOrganizacao.ts`](src/domain/services/EvolucaoOrganizacao.ts) |
 | RF07 / UC05 — Combate coletivo     | [`AcaoColetiva.ts`](src/domain/services/AcaoColetiva.ts)     |
 | RF08 — Status (Alienação etc.)     | [`StatusService.ts`](src/domain/services/StatusService.ts)   |
+| Manifestação de Massas (Nível 3)   | [`AcoesDoTurno.ts`](src/application/use-cases/AcoesDoTurno.ts) — caso `manifestacaoDeMassas` |
 | Antagonistas como NPCs             | [`EstrategiaCapital.ts`](src/application/npc/EstrategiaCapital.ts) |
+
+### Efeitos mecânicos dos status
+
+| Status        | Efeito                                                                                    |
+| ------------- | ----------------------------------------------------------------------------------------- |
+| **Alienação** | Reduz a contribuição de práxis pela metade e bloqueia o trabalhador de doar Solidariedade |
+| **Fetichismo**| Anula a mitigação por CM no cálculo de mais-valia (a mercadoria deixa de "proteger")      |
+| **Imunidade** | Após Manifestação de Massas / Escola de Formação: ignora novas aplicações por N turnos    |
+
+Status decaem 1 turno por ciclo completo (quando o turno volta para os jogadores). `Tradutor de Verdades` cura via ação **Desmistificação**.
 
 ## Como rodar
 

@@ -6,7 +6,7 @@ import { aplicarCicloSemanal, EscolhaUberizado } from '@domain/services/CicloSem
 import { contribuirParaOrganizacao } from '@domain/services/EvolucaoOrganizacao';
 import { convocarPiquete, convocarGreveGeral, expropriar } from '@domain/services/AcaoColetiva';
 import { praxisColetiva } from '@domain/services/Praxis';
-import { aplicarStatus, curarStatus } from '@domain/services/StatusService';
+import { aplicarStatus, concederImunidade, curarStatus, decairStatus } from '@domain/services/StatusService';
 import { StatusNegativo } from '@domain/value-objects/Status';
 import { EventoPartida } from '@domain/events/EventosDePartida';
 
@@ -21,6 +21,7 @@ export type Comando =
   | { tipo: 'contribuirOrganizacao'; trabalhadorId: string; cm: number; tl: number; cc: number }
   | { tipo: 'piquete'; antagonistaId: string }
   | { tipo: 'greveGeral'; antagonistaId: string }
+  | { tipo: 'manifestacaoDeMassas' }
   | { tipo: 'expropriar'; antagonistaId: string }
   | { tipo: 'aplicarStatus'; alvoId: string; status: StatusNegativo; turnos: number }
   | { tipo: 'curarStatus'; alvoId: string; status: StatusNegativo }
@@ -159,9 +160,46 @@ export function aplicarComando(p: Partida, c: Comando): ResultadoComando {
       const desbloqueados = p.antagonistas.map((a) => ({ ...a, bloqueadoNoTurno: false }));
       const proxAtivo = p.turnoAtivoDe === 'jogadores' ? 'sistema' : 'jogadores';
       const proxTurno = proxAtivo === 'jogadores' ? p.turno + 1 : p.turno;
+      // Decai status apenas quando o ciclo completo termina (volta para jogadores).
+      const eventos: EventoPartida[] = [];
+      let trabalhadores = p.trabalhadores;
+      if (proxAtivo === 'jogadores') {
+        trabalhadores = trabalhadores.map((t) => {
+          const r = decairStatus(t);
+          eventos.push(...r.eventos);
+          return r.alvo;
+        });
+      }
+      eventos.push({
+        tipo: 'narrativa',
+        texto: `Turno ${proxTurno} — vez de ${proxAtivo === 'jogadores' ? 'os trabalhadores' : 'a Voz do Sistema'}.`,
+      });
       return {
-        partida: { ...p, antagonistas: desbloqueados, turnoAtivoDe: proxAtivo, turno: proxTurno },
-        eventos: [{ tipo: 'narrativa', texto: `Turno ${proxTurno} — vez de ${proxAtivo === 'jogadores' ? 'os trabalhadores' : 'a Voz do Sistema'}.` }],
+        partida: { ...p, antagonistas: desbloqueados, trabalhadores, turnoAtivoDe: proxAtivo, turno: proxTurno },
+        eventos,
+      };
+    }
+
+    case 'manifestacaoDeMassas': {
+      const CUSTO_MANIFESTACAO_TL = 10;
+      const TURNOS_IMUNIDADE = 2;
+      if (p.organizacao.nivel < 3) {
+        return { partida: p, eventos: [], erro: 'Organização precisa estar no Nível 3 para Manifestação.' };
+      }
+      if (p.organizacao.fundoDeGreve.tl < CUSTO_MANIFESTACAO_TL) {
+        return { partida: p, eventos: [], erro: 'Fundo de Greve sem TL suficiente para mobilização.' };
+      }
+      const novaOrg = {
+        ...p.organizacao,
+        fundoDeGreve: { ...p.organizacao.fundoDeGreve, tl: p.organizacao.fundoDeGreve.tl - CUSTO_MANIFESTACAO_TL },
+      };
+      const trabalhadores = p.trabalhadores.map((t) => concederImunidade(t, TURNOS_IMUNIDADE));
+      return {
+        partida: { ...p, organizacao: novaOrg, trabalhadores },
+        eventos: [{
+          tipo: 'narrativa',
+          texto: `MANIFESTAÇÃO DE MASSAS! Por ${TURNOS_IMUNIDADE} turnos a classe está blindada contra Alienação e Fetichismo.`,
+        }],
       };
     }
   }

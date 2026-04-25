@@ -5,6 +5,8 @@ import { EventoPartida } from '../events/EventosDePartida';
 /**
  * Aplicação e cura de status (Alienação, Fetichismo). RF08.
  * Tradutor de Verdades pode curar via "Desmistificação" (use case dedicado).
+ * Trabalhadores sob imunidade (ex.: cobertos por Manifestação de Massas / Escola
+ * de Formação) ignoram a aplicação — emite evento narrativo de proteção.
  */
 export function aplicarStatus(
   alvo: Trabalhador,
@@ -12,6 +14,15 @@ export function aplicarStatus(
   turnos: number,
 ): { alvo: Trabalhador; eventos: EventoPartida[] } {
   if (alvo.colapsado) return { alvo, eventos: [] };
+  if (alvo.imunidadeStatusTurnos > 0) {
+    return {
+      alvo,
+      eventos: [{
+        tipo: 'narrativa',
+        texto: `${alvo.nome} resistiu à tentativa de ${tipo} — a Organização escudou a classe.`,
+      }],
+    };
+  }
   const existe = alvo.status.find((s) => s.tipo === tipo);
   const novosStatus: StatusAtivo[] = existe
     ? alvo.status.map((s) => (s.tipo === tipo ? { tipo, turnosRestantes: Math.max(s.turnosRestantes, turnos) } : s))
@@ -33,12 +44,28 @@ export function curarStatus(
   };
 }
 
-/** Reduz o contador de todos os status em 1 turno; remove os que chegam a zero. */
-export function decairStatus(alvo: Trabalhador): Trabalhador {
+/** Reduz o contador de status e de imunidade em 1 turno; remove status zerados. */
+export function decairStatus(alvo: Trabalhador): { alvo: Trabalhador; eventos: EventoPartida[] } {
+  const eventos: EventoPartida[] = [];
+  const status = alvo.status
+    .map((s) => ({ ...s, turnosRestantes: s.turnosRestantes - 1 }))
+    .filter((s) => {
+      if (s.turnosRestantes > 0) return true;
+      eventos.push({ tipo: 'statusCurado', alvoId: alvo.id, status: s.tipo });
+      return false;
+    });
+  const imunidade = Math.max(0, alvo.imunidadeStatusTurnos - 1);
+  return {
+    alvo: { ...alvo, status, imunidadeStatusTurnos: imunidade },
+    eventos,
+  };
+}
+
+/** Concede imunidade a novos status pelos próximos N turnos. */
+export function concederImunidade(alvo: Trabalhador, turnos: number): Trabalhador {
+  if (alvo.colapsado) return alvo;
   return {
     ...alvo,
-    status: alvo.status
-      .map((s) => ({ ...s, turnosRestantes: s.turnosRestantes - 1 }))
-      .filter((s) => s.turnosRestantes > 0),
+    imunidadeStatusTurnos: Math.max(alvo.imunidadeStatusTurnos, Math.max(0, turnos)),
   };
 }

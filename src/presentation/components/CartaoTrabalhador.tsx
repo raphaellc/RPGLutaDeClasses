@@ -27,8 +27,15 @@ export function CartaoTrabalhador({ trabalhador: t, destaque, acoes }: Props) {
         <span className="label">Consciência</span>
         <span className="valor">{t.recursos.cc}</span>
         <span style={{ flex: 1 }} />
+        {t.imunidadeStatusTurnos > 0 && (
+          <span className="badge ouro" title="Imune a novos status negativos">
+            ✦ Escudo {t.imunidadeStatusTurnos}t
+          </span>
+        )}
         {t.status.length > 0 && (
-          <span className="badge vermelho">⛓ {t.status.map((s) => s.tipo).join(', ')}</span>
+          <span className="badge vermelho" style={{ marginLeft: 8 }}>
+            ⛓ {t.status.map((s) => `${s.tipo} (${s.turnosRestantes}t)`).join(', ')}
+          </span>
         )}
       </div>
       {t.colapsado && <p style={{ marginTop: 8, color: 'var(--vermelho-revolucao)', fontWeight: 700 }}>COLAPSADO — Tempo de Vida exaurido.</p>}

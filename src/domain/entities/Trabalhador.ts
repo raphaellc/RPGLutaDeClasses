@@ -20,5 +20,11 @@ export interface Trabalhador {
   readonly limites: LimitesRecursos;
   readonly recursos: Recursos;
   readonly status: ReadonlyArray<StatusAtivo>;
+  /**
+   * Turnos restantes de imunidade a NOVOS status negativos
+   * (ex.: efeito da Manifestação de Massas / Escola de Formação).
+   * Status já ativos continuam decaindo normalmente.
+   */
+  readonly imunidadeStatusTurnos: number;
   readonly colapsado: boolean;
 }

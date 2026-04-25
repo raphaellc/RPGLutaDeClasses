@@ -40,6 +40,7 @@ export function criarPartida(entrada: EntradaCriarPartida): Partida {
       limites: perfil.limites,
       recursos: perfil.recursos,
       status: [],
+      imunidadeStatusTurnos: 0,
       colapsado: false,
     };
   });
