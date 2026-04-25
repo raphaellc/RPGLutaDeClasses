@@ -1,0 +1,318 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&display=swap');
+@import './design-tokens.css';
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  background: var(--preto-carvao);
+  color: var(--branco-manifesto);
+  font-family: var(--fonte-corpo);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--fonte-titulo);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--branco-manifesto);
+  font-weight: 400;
+}
+
+h1 { font-size: 40px; }
+h2 { font-size: 28px; }
+h3 { font-size: 20px; }
+h4 { font-size: 16px; }
+
+a {
+  color: var(--ouro-operario);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+
+button {
+  font-family: var(--fonte-corpo);
+  font-weight: 700;
+  background: var(--cinza-chumbo-escuro);
+  color: var(--branco-manifesto);
+  border: var(--borda-grossa);
+  border-radius: 0;
+  padding: var(--esp-2) var(--esp-4);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: none;
+}
+
+button:hover:not(:disabled) {
+  background: var(--vermelho-revolucao);
+  color: var(--branco-manifesto);
+  border-color: var(--vermelho-revolucao);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+button.primaria {
+  background: var(--vermelho-revolucao);
+  border-color: var(--vermelho-revolucao);
+}
+button.primaria:hover:not(:disabled) {
+  background: var(--branco-manifesto);
+  color: var(--vermelho-revolucao);
+  border-color: var(--branco-manifesto);
+}
+
+button.secundaria {
+  background: transparent;
+  border-color: var(--ouro-operario);
+  color: var(--ouro-operario);
+}
+button.secundaria:hover:not(:disabled) {
+  background: var(--ouro-operario);
+  color: var(--preto-carvao);
+}
+
+select,
+input[type='text'],
+input[type='number'] {
+  font-family: var(--fonte-corpo);
+  background: var(--preto-carvao);
+  color: var(--branco-manifesto);
+  border: var(--borda-fina);
+  border-radius: 0;
+  padding: var(--esp-2) var(--esp-3);
+}
+
+.painel {
+  background: var(--cinza-chumbo-escuro);
+  border: var(--borda-fina);
+  padding: var(--esp-4);
+}
+
+.painel.vermelho { border: var(--borda-vermelha); }
+.painel.ouro { border: 3px solid var(--ouro-operario); }
+
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px var(--esp-2);
+  background: var(--cinza-chumbo);
+  color: var(--branco-manifesto);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.badge.vermelho { background: var(--vermelho-revolucao); }
+.badge.ouro { background: var(--ouro-operario); color: var(--preto-carvao); }
+
+.barra {
+  position: relative;
+  height: 16px;
+  width: 100%;
+  background: var(--preto-carvao);
+  border: var(--borda-fina);
+  overflow: hidden;
+}
+.barra > .preenchimento {
+  height: 100%;
+  background-image: repeating-linear-gradient(
+    90deg,
+    currentColor 0,
+    currentColor 8px,
+    rgba(0, 0, 0, 0.3) 8px,
+    rgba(0, 0, 0, 0.3) 10px
+  );
+}
+.barra.pv { color: var(--vermelho-revolucao); }
+.barra.tl { color: var(--ouro-operario); }
+.barra.cm { color: var(--branco-manifesto-2); }
+.barra.capital { color: var(--vermelho-escuro); }
+
+.linha-status {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  margin: var(--esp-2) 0;
+}
+
+.linha-status .label {
+  font-weight: 700;
+  width: 80px;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.linha-status .valor {
+  font-weight: 700;
+  width: 60px;
+  text-align: right;
+}
+
+.log {
+  background: var(--preto-carvao);
+  border: var(--borda-fina);
+  padding: var(--esp-3);
+  height: 320px;
+  overflow-y: auto;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.log .entrada {
+  border-left: 2px solid var(--cinza-chumbo-claro);
+  padding-left: var(--esp-3);
+  margin-bottom: var(--esp-2);
+}
+.log .entrada.evento { border-left-color: var(--vermelho-revolucao); }
+.log .entrada.evolucao { border-left-color: var(--ouro-operario); }
+.log .entrada.narrativa { border-left-color: var(--branco-manifesto-2); color: var(--branco-manifesto-2); font-style: italic; }
+
+.titulo-cartaz {
+  font-family: var(--fonte-titulo);
+  font-size: 56px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  border-top: 6px solid var(--vermelho-revolucao);
+  border-bottom: 6px solid var(--vermelho-revolucao);
+  padding: var(--esp-3) 0;
+  margin-bottom: var(--esp-5);
+}
+
+.cabecalho {
+  border-bottom: var(--borda-vermelha);
+  padding: var(--esp-4) var(--esp-5);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cabecalho .marca {
+  font-family: var(--fonte-titulo);
+  font-size: 22px;
+  letter-spacing: 0.06em;
+}
+
+.cabecalho nav {
+  display: flex;
+  gap: var(--esp-4);
+}
+
+.cabecalho nav a {
+  border: none;
+  color: var(--branco-manifesto);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.cabecalho nav a.ativo,
+.cabecalho nav a:hover {
+  color: var(--vermelho-revolucao);
+}
+
+.tabuleiro {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--esp-5);
+  padding: var(--esp-5);
+}
+
+@media (max-width: 800px) {
+  .tabuleiro { grid-template-columns: 1fr; }
+}
+
+.coluna {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+}
+
+.cartao-personagem h3 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--esp-2);
+}
+
+.acoes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--esp-2);
+  margin-top: var(--esp-3);
+}
+
+.colapsado {
+  opacity: 0.4;
+  filter: grayscale(1);
+}
+
+.subtitulo {
+  font-family: var(--fonte-titulo);
+  color: var(--ouro-operario);
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: var(--esp-3);
+  margin-bottom: var(--esp-2);
+}
+
+.bandeira-fim {
+  text-align: center;
+  padding: var(--esp-7);
+  border: 6px solid var(--vermelho-revolucao);
+  margin: var(--esp-5);
+}
+.bandeira-fim.vitoria { border-color: var(--ouro-operario); }
+.bandeira-fim.derrota { border-color: var(--cinza-chumbo-claro); }
+.bandeira-fim h2 {
+  font-size: 64px;
+  margin-bottom: var(--esp-3);
+}
+
+.tabela-recursos {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.tabela-recursos th,
+.tabela-recursos td {
+  border: var(--borda-fina);
+  padding: var(--esp-2) var(--esp-3);
+  text-align: left;
+}
+.tabela-recursos th {
+  background: var(--cinza-chumbo);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.intro {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--esp-6);
+}
+.intro p {
+  margin-bottom: var(--esp-4);
+}
+.intro .citacao {
+  border-left: 4px solid var(--vermelho-revolucao);
+  padding-left: var(--esp-4);
+  font-style: italic;
+  color: var(--branco-manifesto-2);
+}
+
+.controles {
+  display: flex;
+  gap: var(--esp-3);
+  flex-wrap: wrap;
+  align-items: center;
+}
