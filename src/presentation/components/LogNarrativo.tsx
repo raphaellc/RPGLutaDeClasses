@@ -57,6 +57,8 @@ function textoEvento(e: EventoPartida): string {
       return `Antagonista derrotado.`;
     case 'rolagem':
       return `Rolagem: ${e.valor} (${e.resultado}).`;
+    case 'acaoDiretaResolvida':
+      return `Ação Direta — "${e.intencao}" via ${e.eixo}: ${e.d6}+${e.bonus}=${e.total} (${e.resultado})${e.danoAoCapital ? ` · ${e.danoAoCapital} de dano ao Capital` : ''}.`;
     case 'narrativa':
       return e.texto;
   }

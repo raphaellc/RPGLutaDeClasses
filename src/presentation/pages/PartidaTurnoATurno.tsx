@@ -4,6 +4,7 @@ import { Partida } from '@domain/entities/Partida';
 import { Trabalhador } from '@domain/entities/Trabalhador';
 import { Comando } from '@application/use-cases/AcoesDoTurno';
 import { useEstadoPartida } from '../hooks/useEstadoPartida';
+import { DialogoAcaoDireta } from '../components/DialogoAcaoDireta';
 import { CartaoTrabalhador } from '../components/CartaoTrabalhador';
 import { CartaoAntagonista } from '../components/CartaoAntagonista';
 import { PainelOrganizacao } from '../components/PainelOrganizacao';
@@ -33,6 +34,7 @@ export function PartidaTurnoATurno() {
 
 function PartidaUI({ inicial, onNova }: { inicial: Partida; onNova: () => void }) {
   const { partida, log, erro, aplicar, encerrarTurno } = useEstadoPartida(inicial);
+  const [acaoDiretaDe, setAcaoDiretaDe] = useState<Trabalhador | undefined>();
 
   const ativos = partida.trabalhadores.filter((t) => !t.colapsado);
   const antagonistasVivos = partida.antagonistas.filter((a) => !a.derrotado);
@@ -87,6 +89,7 @@ function PartidaUI({ inicial, onNova }: { inicial: Partida; onNova: () => void }
                     antagonistas={antagonistasVivos}
                     organizacao={partida.organizacao}
                     aplicar={aplicar}
+                    abrirAcaoDireta={() => setAcaoDiretaDe(t)}
                   />
                 ) : null
               }
@@ -94,6 +97,29 @@ function PartidaUI({ inicial, onNova }: { inicial: Partida; onNova: () => void }
           ))}
         </div>
       </div>
+
+      {acaoDiretaDe && (
+        <DialogoAcaoDireta
+          executor={acaoDiretaDe}
+          antagonistas={antagonistasVivos}
+          onCancelar={() => setAcaoDiretaDe(undefined)}
+          onConfirmar={(d) => {
+            aplicar({
+              tipo: 'acaoDireta',
+              executorId: acaoDiretaDe.id,
+              parametros: {
+                intencao: d.intencao,
+                eixo: d.eixo,
+                danoAoCapitalSeSucesso: d.danoSeSucesso,
+              },
+              alvoAntagonistaId: d.alvoAntagonistaId,
+              rolagem: d.rolagem,
+              custoEscolhido: d.custo,
+            });
+            setAcaoDiretaDe(undefined);
+          }}
+        />
+      )}
     </>
   );
 }
@@ -104,9 +130,10 @@ interface AcoesProps {
   antagonistas: ReadonlyArray<Partida['antagonistas'][number]>;
   organizacao: Partida['organizacao'];
   aplicar: (cmd: Comando) => void;
+  abrirAcaoDireta: () => void;
 }
 
-function AcoesTrabalhador({ trabalhador, outros, antagonistas, organizacao, aplicar }: AcoesProps) {
+function AcoesTrabalhador({ trabalhador, outros, antagonistas, organizacao, aplicar, abrirAcaoDireta }: AcoesProps) {
   const [alvoSolid, setAlvoSolid] = useState(outros[0]?.id ?? '');
   const alvoAntag = antagonistas[0];
 
@@ -159,6 +186,10 @@ function AcoesTrabalhador({ trabalhador, outros, antagonistas, organizacao, apli
         onClick={() => aplicar({ tipo: 'cicloSemanal', trabalhadorId: trabalhador.id, escolha: 'rodar' })}
       >
         Descansar
+      </button>
+
+      <button className="secundaria" onClick={abrirAcaoDireta}>
+        Ação Direta (1d6)
       </button>
 
       {alvoAntag && organizacao.nivel >= 2 && (

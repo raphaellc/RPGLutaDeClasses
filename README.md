@@ -65,6 +65,7 @@ src/
 | RF07 / UC05 — Combate coletivo     | [`AcaoColetiva.ts`](src/domain/services/AcaoColetiva.ts)     |
 | RF08 — Status (Alienação etc.)     | [`StatusService.ts`](src/domain/services/StatusService.ts)   |
 | Manifestação de Massas (Nível 3)   | [`AcoesDoTurno.ts`](src/application/use-cases/AcoesDoTurno.ts) — caso `manifestacaoDeMassas` |
+| Cap. 3 — Resolução por 1d6         | [`AcaoDireta.ts`](src/domain/services/AcaoDireta.ts) + [`IniciarAcaoDireta.ts`](src/application/use-cases/IniciarAcaoDireta.ts) |
 | Antagonistas como NPCs             | [`EstrategiaCapital.ts`](src/application/npc/EstrategiaCapital.ts) |
 
 ### Efeitos mecânicos dos status
@@ -76,6 +77,18 @@ src/
 | **Imunidade** | Após Manifestação de Massas / Escola de Formação: ignora novas aplicações por N turnos    |
 
 Status decaem 1 turno por ciclo completo (quando o turno volta para os jogadores). `Tradutor de Verdades` cura via ação **Desmistificação**.
+
+### Resolução por 1d6 (Capítulo 3)
+
+A **Ação Direta** é uma ação individual narrativa (sabotagem, persuasão, agitação local). O jogador descreve a intenção, escolhe um Eixo de Tensão (que dá bônus à rolagem), opcionalmente escolhe um antagonista alvo + dano se sucesso, e rola **1d6 + eixo**:
+
+| Total | Resultado            | Efeito                                                                   |
+| :---: | -------------------- | ------------------------------------------------------------------------ |
+| ≥ 5   | **Sucesso Pleno**    | Dano completo ao alvo, dignidade preservada                              |
+| 3-4   | **Sucesso com Custo**| Dano metade. Jogador escolhe: –2 PV, –1 CM, ou +1 tique de Alienação      |
+| ≤ 2   | **Derrota Poética**  | Sem dano; o Sistema esmaga a iniciativa (–3 PV)                          |
+
+A aleatoriedade vive isolada em [`IniciarAcaoDireta.ts`](src/application/use-cases/IniciarAcaoDireta.ts) (que injeta a porta `Dado`). O domínio em [`AcaoDireta.ts`](src/domain/services/AcaoDireta.ts) é determinístico — fácil de testar com `DadoDeterministico`.
 
 ## Como rodar
 

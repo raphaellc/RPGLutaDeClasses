@@ -4,6 +4,7 @@ export * from './entities/Partida';
 export * from './entities/Trabalhador';
 export * from './events/EventosDePartida';
 export * from './services/AcaoColetiva';
+export * from './services/AcaoDireta';
 export * from './services/CicloSemanal';
 export * from './services/Dado';
 export * from './services/EvolucaoOrganizacao';

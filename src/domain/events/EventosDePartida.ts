@@ -16,4 +16,5 @@ export type EventoPartida =
   | { tipo: 'colapso'; trabalhadorId: string }
   | { tipo: 'antagonistaDerrotado'; antagonistaId: string }
   | { tipo: 'rolagem'; valor: number; resultado: 'sucessoPleno' | 'sucessoComCusto' | 'derrota' }
+  | { tipo: 'acaoDiretaResolvida'; executorId: string; intencao: string; eixo: string; d6: number; bonus: number; total: number; resultado: 'sucessoPleno' | 'sucessoComCusto' | 'derrota'; danoAoCapital: number; alvoAntagonistaId?: string }
   | { tipo: 'narrativa'; texto: string };

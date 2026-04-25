@@ -7,6 +7,7 @@ import { contribuirParaOrganizacao } from '@domain/services/EvolucaoOrganizacao'
 import { convocarPiquete, convocarGreveGeral, expropriar } from '@domain/services/AcaoColetiva';
 import { praxisColetiva } from '@domain/services/Praxis';
 import { aplicarStatus, concederImunidade, curarStatus, decairStatus } from '@domain/services/StatusService';
+import { aplicarResultadoAcao, CustoSucessoComCusto, ParametrosAcaoDireta, Rolagem } from '@domain/services/AcaoDireta';
 import { StatusNegativo } from '@domain/value-objects/Status';
 import { EventoPartida } from '@domain/events/EventosDePartida';
 
@@ -25,6 +26,15 @@ export type Comando =
   | { tipo: 'expropriar'; antagonistaId: string }
   | { tipo: 'aplicarStatus'; alvoId: string; status: StatusNegativo; turnos: number }
   | { tipo: 'curarStatus'; alvoId: string; status: StatusNegativo }
+  | {
+      tipo: 'acaoDireta';
+      executorId: string;
+      parametros: ParametrosAcaoDireta;
+      alvoAntagonistaId?: string;
+      rolagem: Rolagem;
+      /** Obrigatório se a rolagem deu 'sucessoComCusto'. Ignorado nos demais. */
+      custoEscolhido?: CustoSucessoComCusto;
+    }
   | { tipo: 'avancarTurno' };
 
 export interface ResultadoComando {
@@ -154,6 +164,59 @@ export function aplicarComando(p: Partida, c: Comando): ResultadoComando {
       if (!t) return { partida: p, eventos: [], erro: 'Alvo não encontrado.' };
       const r = curarStatus(t, c.status);
       return { partida: subT(p, r.alvo), eventos: r.eventos };
+    }
+
+    case 'acaoDireta': {
+      const executor = p.trabalhadores.find((x) => x.id === c.executorId);
+      if (!executor) return { partida: p, eventos: [], erro: 'Executor não encontrado.' };
+      if (executor.colapsado) return { partida: p, eventos: [], erro: 'Executor colapsado.' };
+
+      const ant = c.alvoAntagonistaId
+        ? p.antagonistas.find((a) => a.id === c.alvoAntagonistaId)
+        : undefined;
+      if (c.alvoAntagonistaId && !ant) {
+        return { partida: p, eventos: [], erro: 'Alvo antagonista não encontrado.' };
+      }
+      if (ant?.derrotado) {
+        return { partida: p, eventos: [], erro: 'Antagonista já derrotado.' };
+      }
+
+      const res = aplicarResultadoAcao(executor, c.rolagem, c.parametros, c.custoEscolhido);
+
+      let novosAntagonistas = p.antagonistas;
+      const eventosExtras: EventoPartida[] = [];
+      if (ant && res.danoAoCapital > 0) {
+        const novoCapital = Math.max(0, ant.capitalAcumulado - res.danoAoCapital);
+        const derrotado = novoCapital === 0;
+        novosAntagonistas = p.antagonistas.map((a) =>
+          a.id === ant.id ? { ...a, capitalAcumulado: novoCapital, derrotado } : a,
+        );
+        if (derrotado) {
+          eventosExtras.push({ tipo: 'antagonistaDerrotado', antagonistaId: ant.id });
+        }
+      }
+
+      const eventoAcao: EventoPartida = {
+        tipo: 'acaoDiretaResolvida',
+        executorId: executor.id,
+        intencao: c.parametros.intencao,
+        eixo: c.rolagem.eixo,
+        d6: c.rolagem.d6,
+        bonus: c.rolagem.bonus,
+        total: c.rolagem.total,
+        resultado: c.rolagem.resultado,
+        danoAoCapital: res.danoAoCapital,
+        ...(c.alvoAntagonistaId ? { alvoAntagonistaId: c.alvoAntagonistaId } : {}),
+      };
+
+      const novaPartida = recalcularFase({
+        ...subT(p, res.executor),
+        antagonistas: novosAntagonistas,
+      });
+      return {
+        partida: novaPartida,
+        eventos: [eventoAcao, ...res.eventos, ...eventosExtras],
+      };
     }
 
     case 'avancarTurno': {
