@@ -17,4 +17,5 @@ export type EventoPartida =
   | { tipo: 'antagonistaDerrotado'; antagonistaId: string }
   | { tipo: 'rolagem'; valor: number; resultado: 'sucessoPleno' | 'sucessoComCusto' | 'derrota' }
   | { tipo: 'acaoDiretaResolvida'; executorId: string; intencao: string; eixo: string; d6: number; bonus: number; total: number; resultado: 'sucessoPleno' | 'sucessoComCusto' | 'derrota'; danoAoCapital: number; alvoAntagonistaId?: string }
+  | { tipo: 'maquinasVorazes'; antagonistaId: string; danoBase: number; alvosAfetados: ReadonlyArray<{ alvoId: string; dano: number }> }
   | { tipo: 'narrativa'; texto: string };

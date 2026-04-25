@@ -35,7 +35,8 @@ function escolherAlvo(ant: Antagonista, ativos: ReadonlyArray<Trabalhador>): Tra
         return [...ativos].sort((a, b) => b.recursos.cc - a.recursos.cc);
       case 'capitalistaIndustrial':
       default:
-        return [...ativos].sort((a, b) => b.recursos.pv + b.recursos.tl - (a.recursos.pv + a.recursos.tl));
+        // Explora o elo mais fraco — menor PV primeiro ("a máquina não escolhe, tritura")
+        return [...ativos].sort((a, b) => a.recursos.pv - b.recursos.pv);
     }
   })();
   return ranking[0];
@@ -54,17 +55,28 @@ function gerarAtaque(ant: Antagonista, alvo: Trabalhador, turno: number): Comand
   // Escalonamento moderado por turno (a Metrópole-Máquina não cansa).
   const danoBruto = base + Math.floor(turno / 3);
 
-  const out: Comando[] = [
-    { tipo: 'extrairMaisValia', antagonistaId: ant.id, alvoId: alvo.id, danoBruto },
-  ];
+  const out: Comando[] = [];
 
-  // Senhor das Nuvens aplica Alienação periodicamente
+  // ─── Capitalista Industrial: Máquinas Vorazes ────────────────────────────
+  // Dano passivo AoE que precede a mais-valia dirigida.
+  // Cresce gradualmente — as máquinas aceleram o ritmo com o tempo.
+  // Não é mitigado por CM: "você não pode negociar com uma máquina."
+  if (ant.arquetipo === 'capitalistaIndustrial') {
+    const danoMV = 2 + Math.floor(turno / 4);
+    out.push({ tipo: 'maquinasVorazes', antagonistaId: ant.id, danoBase: danoMV });
+  }
+
+  // Ataque principal (mais-valia dirigida a um alvo)
+  out.push({ tipo: 'extrairMaisValia', antagonistaId: ant.id, alvoId: alvo.id, danoBruto });
+
+  // ─── Senhor das Nuvens: Alienação periódica ───────────────────────────────
   if (ant.arquetipo === 'senhorNuvens' && turno % 2 === 0) {
     out.push({ tipo: 'aplicarStatus', alvoId: alvo.id, status: 'alienacao', turnos: 2 });
   }
-  // Estado Burguês aplica Fetichismo
+  // ─── Estado Burguês: Fetichismo periódico ────────────────────────────────
   if (ant.arquetipo === 'estadoBurgues' && turno % 3 === 0) {
     out.push({ tipo: 'aplicarStatus', alvoId: alvo.id, status: 'fetichismo', turnos: 2 });
   }
+
   return out;
 }

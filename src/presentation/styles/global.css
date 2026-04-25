@@ -176,6 +176,8 @@ input[type='number'] {
 .log .entrada.evento { border-left-color: var(--vermelho-revolucao); }
 .log .entrada.evolucao { border-left-color: var(--ouro-operario); }
 .log .entrada.narrativa { border-left-color: var(--branco-manifesto-2); color: var(--branco-manifesto-2); font-style: italic; }
+/* Máquinas Vorazes + Colapso — urgência máxima */
+.log .entrada.vermelho { border-left: 3px solid var(--vermelho-revolucao); color: #ff6b6b; font-weight: 700; }
 
 .titulo-cartaz {
   font-family: var(--fonte-titulo);

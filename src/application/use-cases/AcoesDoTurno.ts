@@ -8,6 +8,7 @@ import { convocarPiquete, convocarGreveGeral, expropriar } from '@domain/service
 import { praxisColetiva } from '@domain/services/Praxis';
 import { aplicarStatus, concederImunidade, concederImunidadePermanente, curarStatus, decairStatus } from '@domain/services/StatusService';
 import { aplicarResultadoAcao, CustoSucessoComCusto, ParametrosAcaoDireta, Rolagem } from '@domain/services/AcaoDireta';
+import { aplicarMaquinasVorazes } from '@domain/services/MaquinasVorazes';
 import { StatusNegativo } from '@domain/value-objects/Status';
 import { EventoPartida } from '@domain/events/EventosDePartida';
 
@@ -36,6 +37,7 @@ export type Comando =
       /** Obrigatório se a rolagem deu 'sucessoComCusto'. Ignorado nos demais. */
       custoEscolhido?: CustoSucessoComCusto;
     }
+  | { tipo: 'maquinasVorazes'; antagonistaId: string; danoBase: number }
   | { tipo: 'avancarTurno' };
 
 export interface ResultadoComando {
@@ -218,6 +220,23 @@ export function aplicarComando(p: Partida, c: Comando): ResultadoComando {
         partida: novaPartida,
         eventos: [eventoAcao, ...res.eventos, ...eventosExtras],
       };
+    }
+
+    case 'maquinasVorazes': {
+      const ant = p.antagonistas.find((a) => a.id === c.antagonistaId);
+      if (!ant) return { partida: p, eventos: [], erro: 'Antagonista não encontrado.' };
+      if (ant.derrotado) return { partida: p, eventos: [], erro: 'Antagonista já derrotado.' };
+      if (ant.bloqueadoNoTurno) {
+        return {
+          partida: p,
+          eventos: [{
+            tipo: 'narrativa',
+            texto: `${ant.nome} está bloqueado pelo Piquete — as Máquinas Vorazes param por este turno.`,
+          }],
+        };
+      }
+      const r = aplicarMaquinasVorazes(p.trabalhadores, c.antagonistaId, c.danoBase);
+      return { partida: recalcularFase({ ...p, trabalhadores: r.trabalhadores }), eventos: r.eventos };
     }
 
     case 'avancarTurno': {

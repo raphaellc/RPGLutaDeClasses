@@ -31,6 +31,8 @@ function classe(e: EventoPartida): string {
       if (/^(MANIFESTA|ESCOLA|EXPROPRIA|GREVE GERAL)/.test(e.texto)) return 'evolucao';
       return 'narrativa';
     case 'organizacaoEvoluiu': return 'evolucao';
+    case 'maquinasVorazes': return 'vermelho';
+    case 'colapso': return 'vermelho';
     default: return 'evento';
   }
 }
@@ -63,6 +65,8 @@ function textoEvento(e: EventoPartida): string {
       return `Rolagem: ${e.valor} (${e.resultado}).`;
     case 'acaoDiretaResolvida':
       return `Ação Direta — "${e.intencao}" via ${e.eixo}: ${e.d6}+${e.bonus}=${e.total} (${e.resultado})${e.danoAoCapital ? ` · ${e.danoAoCapital} de dano ao Capital` : ''}.`;
+    case 'maquinasVorazes':
+      return `MÁQUINAS VORAZES: –${e.danoBase} PV a cada trabalhador (${e.alvosAfetados.length} afetados).`;
     case 'narrativa':
       return e.texto;
   }
