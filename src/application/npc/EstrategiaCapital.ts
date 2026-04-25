@@ -26,7 +26,9 @@ export function planejarTurnoSistema(p: Partida): Comando[] {
 }
 
 function escolherAlvo(ant: Antagonista, ativos: ReadonlyArray<Trabalhador>): Trabalhador | undefined {
-  // Senhor das Nuvens prefere Uberizado; Estado prefere quem tem maior CC; Capitalista vai no mais rico em PV.
+  // Senhor das Nuvens: prefere Fantasma da Rede (uberizado mais frágil)
+  // Estado Burguês: prefere maior CC (ameaça à consciência de classe)
+  // Capitalista Industrial: prefere menor PV (o elo mais fraco da linha de produção)
   const ranking: ReadonlyArray<Trabalhador> = (() => {
     switch (ant.arquetipo) {
       case 'senhorNuvens':
@@ -35,7 +37,8 @@ function escolherAlvo(ant: Antagonista, ativos: ReadonlyArray<Trabalhador>): Tra
         return [...ativos].sort((a, b) => b.recursos.cc - a.recursos.cc);
       case 'capitalistaIndustrial':
       default:
-        return [...ativos].sort((a, b) => b.recursos.pv + b.recursos.tl - (a.recursos.pv + a.recursos.tl));
+        // Explora o elo mais fraco — menor PV primeiro ("a máquina não escolhe, tritura")
+        return [...ativos].sort((a, b) => a.recursos.pv - b.recursos.pv);
     }
   })();
   return ranking[0];
@@ -54,17 +57,47 @@ function gerarAtaque(ant: Antagonista, alvo: Trabalhador, turno: number): Comand
   // Escalonamento moderado por turno (a Metrópole-Máquina não cansa).
   const danoBruto = base + Math.floor(turno / 3);
 
-  const out: Comando[] = [
-    { tipo: 'extrairMaisValia', antagonistaId: ant.id, alvoId: alvo.id, danoBruto },
-  ];
+  const out: Comando[] = [];
 
-  // Senhor das Nuvens aplica Alienação periodicamente
-  if (ant.arquetipo === 'senhorNuvens' && turno % 2 === 0) {
+  // ─── Capitalista Industrial: Máquinas Vorazes (AoE passivo) ─────────────
+  if (ant.arquetipo === 'capitalistaIndustrial') {
+    const danoMV = 2 + Math.floor(turno / 4);
+    out.push({ tipo: 'maquinasVorazes', antagonistaId: ant.id, danoBase: danoMV });
+    // Mais-valia dirigida ao elo mais fraco (calculada acima)
+    out.push({ tipo: 'extrairMaisValia', antagonistaId: ant.id, alvoId: alvo.id, danoBruto });
+    return out;
+  }
+
+  // ─── Estado Burguês: Polícia de Choque (split PV + CM) ──────────────────
+  // Força policial → PV direto (sem mitigação por CM ou TL)
+  // Tribunais      → CM direto (custas judiciais, multas)
+  // Escalonamento: cada frente cresce separadamente com o turno.
+  if (ant.arquetipo === 'estadoBurgues') {
+    const danoPV = Math.ceil(danoBruto * 0.6);  // 60 % força bruta
+    const danoCM = Math.floor(danoBruto * 0.4); // 40 % pressão jurídica
+    out.push({ tipo: 'policiaDeChoque', antagonistaId: ant.id, alvoId: alvo.id, danoPV, danoCM });
+    // A cada 3 turnos, os Tribunais também impõem Fetichismo (servidão ideológica ao Estado)
+    if (turno % 3 === 0) {
+      out.push({ tipo: 'aplicarStatus', alvoId: alvo.id, status: 'fetichismo', turnos: 2 });
+    }
+    return out;
+  }
+
+  // ─── Senhor das Nuvens: Tarifa Dinâmica + mais-valia + Alienação ─────────
+  // A cada 3 turnos o algoritmo entra em "Modo Pico" (surge pricing):
+  // o dano é dobrado e o estado fica visível no cartão do antagonista.
+  const MULTIPLICADOR_TARIFA = 2;
+  const emModoPico = turno % 3 === 0;
+  const danoBrutoFinal = emModoPico ? danoBruto * MULTIPLICADOR_TARIFA : danoBruto;
+
+  if (emModoPico) {
+    out.push({ tipo: 'ativarTarifaDinamica', antagonistaId: ant.id, multiplicador: MULTIPLICADOR_TARIFA });
+  }
+  out.push({ tipo: 'extrairMaisValia', antagonistaId: ant.id, alvoId: alvo.id, danoBruto: danoBrutoFinal });
+  // Alienação periódica — a cada 2 turnos (independente da Tarifa)
+  if (turno % 2 === 0) {
     out.push({ tipo: 'aplicarStatus', alvoId: alvo.id, status: 'alienacao', turnos: 2 });
   }
-  // Estado Burguês aplica Fetichismo
-  if (ant.arquetipo === 'estadoBurgues' && turno % 3 === 0) {
-    out.push({ tipo: 'aplicarStatus', alvoId: alvo.id, status: 'fetichismo', turnos: 2 });
-  }
+
   return out;
 }

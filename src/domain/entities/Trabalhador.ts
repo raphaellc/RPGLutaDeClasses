@@ -1,6 +1,6 @@
 import { EixosTensao } from '../value-objects/EixosTensao';
 import { LimitesRecursos, Recursos } from '../value-objects/Recursos';
-import { StatusAtivo } from '../value-objects/Status';
+import { StatusAtivo, StatusNegativo } from '../value-objects/Status';
 
 /**
  * Arquétipos jogáveis (Capítulo 2).
@@ -20,5 +20,17 @@ export interface Trabalhador {
   readonly limites: LimitesRecursos;
   readonly recursos: Recursos;
   readonly status: ReadonlyArray<StatusAtivo>;
+  /**
+   * Turnos restantes de imunidade *temporária e total* — bloqueia QUALQUER
+   * novo status enquanto > 0. Concedida pela Manifestação de Massas.
+   */
+  readonly imunidadeStatusTurnos: number;
+  /**
+   * Imunidades *permanentes* a tipos específicos de status, concedidas pela
+   * Escola de Formação. Uma vez na lista, nunca sai — é a "consciência de
+   * classe" assimilada. Status já ativos do tipo são curados quando a
+   * imunidade é adquirida.
+   */
+  readonly imunidadesPermanentes: ReadonlyArray<StatusNegativo>;
   readonly colapsado: boolean;
 }

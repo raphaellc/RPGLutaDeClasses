@@ -11,10 +11,11 @@ const ARQ_OPCOES: { id: ArquetipoTrabalhador; nome: string; resumo: string }[] =
   { id: 'tradutorVerdades', nome: 'Tradutor de Verdades', resumo: 'Intelectual orgânico — defesa contra Alienação.' },
 ];
 
-const ANT_OPCOES: { id: ArquetipoCapital; nome: string }[] = [
-  { id: 'capitalistaIndustrial', nome: 'Capitalista Industrial' },
-  { id: 'senhorNuvens', nome: 'Senhor das Nuvens (Algoritmo)' },
-  { id: 'estadoBurgues', nome: 'Estado Burguês' },
+const ANT_OPCOES: { id: ArquetipoCapital | 'todos'; nome: string; descricao: string }[] = [
+  { id: 'senhorNuvens', nome: 'Senhor das Nuvens', descricao: 'Algoritmo-Feitor — mais-valia + Alienação periódica.' },
+  { id: 'capitalistaIndustrial', nome: 'Capitalista Industrial', descricao: 'Máquinas Vorazes (AoE) + mais-valia ao elo fraco.' },
+  { id: 'estadoBurgues', nome: 'Estado Burguês', descricao: 'Boss final — Polícia de Choque (PV+CM) + Fetichismo.' },
+  { id: 'todos', nome: 'Todos os três (Confronto Total)', descricao: 'Capítulo 6 completo: três frentes simultâneas.' },
 ];
 
 const TRABALHADORES_PADRAO: DefinicaoTrabalhador[] = [
@@ -27,7 +28,7 @@ export function CriacaoPartida() {
   const nav = useNavigate();
   const [modo, setModo] = useState<ModoJogo>('turnoATurno');
   const [trabalhadores, setTrabalhadores] = useState<DefinicaoTrabalhador[]>(TRABALHADORES_PADRAO);
-  const [antagonista, setAntagonista] = useState<ArquetipoCapital>('senhorNuvens');
+  const [antagonista, setAntagonista] = useState<ArquetipoCapital | 'todos'>('senhorNuvens');
   const [nomeOrg, setNomeOrg] = useState('A Faísca');
 
   function atualizar(idx: number, patch: Partial<DefinicaoTrabalhador>) {
@@ -44,7 +45,13 @@ export function CriacaoPartida() {
 
   function iniciar() {
     if (trabalhadores.length === 0) return;
-    const ants: DefinicaoAntagonista[] = [{ arquetipo: antagonista }];
+    const ants: DefinicaoAntagonista[] = antagonista === 'todos'
+      ? [
+          { arquetipo: 'capitalistaIndustrial' },
+          { arquetipo: 'senhorNuvens' },
+          { arquetipo: 'estadoBurgues' },
+        ]
+      : [{ arquetipo: antagonista }];
     const partida = criarPartida({ modo, trabalhadores, antagonistas: ants, nomeOrganizacao: nomeOrg });
     sessionStorage.setItem('rpg-luta:partida-corrente', JSON.stringify(partida));
     nav(modo === 'simulado' ? '/simulado' : '/turno');
@@ -107,10 +114,14 @@ export function CriacaoPartida() {
       </table>
       <button className="secundaria" onClick={adicionar} style={{ marginTop: 12 }}>+ Adicionar Trabalhador</button>
 
-      <h3 className="subtitulo">Antagonista (NPC)</h3>
-      <select value={antagonista} onChange={(e) => setAntagonista(e.target.value as ArquetipoCapital)}>
+      <h3 className="subtitulo">Antagonista(s) — sempre NPC</h3>
+      <select
+        value={antagonista}
+        onChange={(e) => setAntagonista(e.target.value as ArquetipoCapital | 'todos')}
+        style={{ width: '100%' }}
+      >
         {ANT_OPCOES.map((o) => (
-          <option key={o.id} value={o.id}>{o.nome}</option>
+          <option key={o.id} value={o.id}>{o.nome} — {o.descricao}</option>
         ))}
       </select>
 

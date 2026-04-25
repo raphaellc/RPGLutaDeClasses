@@ -30,4 +30,52 @@ describe('Motor de Simulação', () => {
       expect(passos[i]!.partidaAntes.id).toBe(passos[i - 1]!.partidaDepois.id);
     }
   });
+
+  it('devolve estatisticas com shape correto', () => {
+    const partida = criarPartida({
+      modo: 'simulado',
+      trabalhadores: [
+        { nome: 'Joana', arquetipo: 'ferreiroEngrenagens' },
+        { nome: 'Beto', arquetipo: 'fantasmaRede' },
+      ],
+      antagonistas: [{ arquetipo: 'senhorNuvens' }],
+    });
+    const { estatisticas } = rodarSimulacao(partida, 20);
+    expect(typeof estatisticas.turnosJogados).toBe('number');
+    expect(Array.isArray(estatisticas.trabalhadoresColapsados)).toBe(true);
+    expect(Array.isArray(estatisticas.antagonistasDerrotados)).toBe(true);
+    expect(typeof estatisticas.greveGeralConvocada).toBe('boolean');
+    expect(typeof estatisticas.escolaFundada).toBe('boolean');
+    expect(typeof estatisticas.expropriado).toBe('boolean');
+  });
+
+  it('não trava com múltiplos antagonistas (confronto total)', () => {
+    const partida = criarPartida({
+      modo: 'simulado',
+      trabalhadores: [
+        { nome: 'Joana', arquetipo: 'ferreiroEngrenagens' },
+        { nome: 'Beto', arquetipo: 'fantasmaRede' },
+        { nome: 'Marcos', arquetipo: 'tradutorVerdades' },
+      ],
+      antagonistas: [
+        { arquetipo: 'capitalistaIndustrial' },
+        { arquetipo: 'senhorNuvens' },
+        { arquetipo: 'estadoBurgues' },
+      ],
+    });
+    const r = rodarSimulacao(partida, 50);
+    expect(r.passos.length).toBeGreaterThan(0);
+    // Termina (não é loop infinito)
+    expect(['vitoriaProletaria', 'derrotaDoGrupo', 'emAndamento']).toContain(r.partidaFinal.fase);
+  });
+
+  it('respeitata maxTurnos mesmo sem vitória', () => {
+    const partida = criarPartida({
+      modo: 'simulado',
+      trabalhadores: [{ nome: 'Joana', arquetipo: 'ferreiroEngrenagens' }],
+      antagonistas: [{ arquetipo: 'estadoBurgues' }], // boss muito difícil
+    });
+    const r = rodarSimulacao(partida, 5);
+    expect(r.partidaFinal.turno).toBeLessThanOrEqual(6); // tolerância de 1 turno de folga
+  });
 });

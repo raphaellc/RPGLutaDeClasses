@@ -40,6 +40,8 @@ export function criarPartida(entrada: EntradaCriarPartida): Partida {
       limites: perfil.limites,
       recursos: perfil.recursos,
       status: [],
+      imunidadeStatusTurnos: 0,
+      imunidadesPermanentes: [],
       colapsado: false,
     };
   });
@@ -53,6 +55,7 @@ export function criarPartida(entrada: EntradaCriarPartida): Partida {
       capitalAcumulado: perfil.capitalAcumulado,
       capitalAcumuladoMax: perfil.capitalAcumulado,
       bloqueadoNoTurno: false,
+      emTarifaDinamica: false,
       derrotado: false,
     };
   });

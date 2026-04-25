@@ -14,5 +14,6 @@ export interface Antagonista {
   readonly capitalAcumulado: number;     // "HP" do antagonista
   readonly capitalAcumuladoMax: number;
   readonly bloqueadoNoTurno: boolean;    // efeito de Piquete
+  readonly emTarifaDinamica: boolean;    // Senhor das Nuvens: surge pricing ativo neste turno
   readonly derrotado: boolean;
 }

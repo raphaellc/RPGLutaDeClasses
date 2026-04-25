@@ -25,8 +25,16 @@ export function LogNarrativo({ entradas }: { entradas: ReadonlyArray<EntradaLog>
 
 function classe(e: EventoPartida): string {
   switch (e.tipo) {
-    case 'narrativa': return 'narrativa';
+    case 'narrativa':
+      // Narrativas-marco (MANIFESTAÇÃO, ESCOLA DE FORMAÇÃO etc.) ganham
+      // o destaque visual de "evolução" — são pontos de virada da campanha.
+      if (/^(MANIFESTA|ESCOLA|EXPROPRIA|GREVE GERAL)/.test(e.texto)) return 'evolucao';
+      return 'narrativa';
     case 'organizacaoEvoluiu': return 'evolucao';
+    case 'maquinasVorazes': return 'vermelho';
+    case 'policiaDeChoque': return 'vermelho';
+    case 'tarifaDinamicaAtivada': return 'vermelho';
+    case 'colapso': return 'vermelho';
     default: return 'evento';
   }
 }
@@ -57,6 +65,14 @@ function textoEvento(e: EventoPartida): string {
       return `Antagonista derrotado.`;
     case 'rolagem':
       return `Rolagem: ${e.valor} (${e.resultado}).`;
+    case 'acaoDiretaResolvida':
+      return `Ação Direta — "${e.intencao}" via ${e.eixo}: ${e.d6}+${e.bonus}=${e.total} (${e.resultado})${e.danoAoCapital ? ` · ${e.danoAoCapital} de dano ao Capital` : ''}.`;
+    case 'maquinasVorazes':
+      return `MÁQUINAS VORAZES: –${e.danoBase} PV a cada trabalhador (${e.alvosAfetados.length} afetados).`;
+    case 'policiaDeChoque':
+      return `POLÍCIA DE CHOQUE: –${e.danoPV} PV (força bruta) · –${e.danoCM} CM (Tribunais).`;
+    case 'tarifaDinamicaAtivada':
+      return `⚡ TARIFA DINÂMICA: Algoritmo em Modo Pico — dano ×${e.multiplicador} neste turno.`;
     case 'narrativa':
       return e.texto;
   }

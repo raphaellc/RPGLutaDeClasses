@@ -7,6 +7,8 @@ import { EventoPartida } from '../events/EventosDePartida';
  *
  * Regra:
  *   1) dano real = max(0, dano bruto - CM)        (CM atenua, não é consumida)
+ *      ↳ se o alvo está sob Fetichismo da Mercadoria, a CM não atenua —
+ *        o trabalhador confunde a mercadoria com proteção e o golpe passa direto.
  *   2) o saldo é subtraído primeiro do TL
  *   3) o que sobrar corrói o PV (exaustão)
  *
@@ -18,7 +20,9 @@ export function aplicarMaisValia(
 ): { alvo: Trabalhador; eventos: EventoPartida[] } {
   if (alvo.colapsado) return { alvo, eventos: [] };
 
-  const danoReal = Math.max(0, danoBruto - alvo.recursos.cm);
+  const sobFetichismo = alvo.status.some((s) => s.tipo === 'fetichismo');
+  const cmEfetiva = sobFetichismo ? 0 : alvo.recursos.cm;
+  const danoReal = Math.max(0, danoBruto - cmEfetiva);
   const perdaTl = Math.min(alvo.recursos.tl, danoReal);
   const danoRestante = danoReal - perdaTl;
   const perdaPv = Math.min(alvo.recursos.pv, danoRestante);

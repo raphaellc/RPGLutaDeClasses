@@ -15,6 +15,8 @@ export function joana(): Trabalhador {
     limites: perfil.limites,
     recursos: recursos(80, 10, 5, 0),
     status: [],
+    imunidadeStatusTurnos: 0,
+    imunidadesPermanentes: [],
     colapsado: false,
   };
 }
@@ -29,6 +31,8 @@ export function beto(): Trabalhador {
     limites: perfil.limites,
     recursos: recursos(30, 2, 1, 0),
     status: [],
+    imunidadeStatusTurnos: 0,
+    imunidadesPermanentes: [],
     colapsado: false,
   };
 }
@@ -41,6 +45,7 @@ export function olimpo(): Antagonista {
     capitalAcumulado: 100,
     capitalAcumuladoMax: 100,
     bloqueadoNoTurno: false,
+    emTarifaDinamica: false,
     derrotado: false,
   };
 }

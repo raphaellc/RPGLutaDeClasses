@@ -3,11 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Partida } from '@domain/entities/Partida';
 import { Trabalhador } from '@domain/entities/Trabalhador';
 import { Comando } from '@application/use-cases/AcoesDoTurno';
+import { calcularEstatisticasDeEventos } from '@application/use-cases/EstatisticasPartida';
 import { useEstadoPartida } from '../hooks/useEstadoPartida';
+import { DialogoAcaoDireta } from '../components/DialogoAcaoDireta';
 import { CartaoTrabalhador } from '../components/CartaoTrabalhador';
 import { CartaoAntagonista } from '../components/CartaoAntagonista';
 import { PainelOrganizacao } from '../components/PainelOrganizacao';
 import { LogNarrativo } from '../components/LogNarrativo';
+import { TelaFinal } from '../components/TelaFinal';
 
 function carregarPartidaInicial(): Partida | null {
   try {
@@ -33,10 +36,18 @@ export function PartidaTurnoATurno() {
 
 function PartidaUI({ inicial, onNova }: { inicial: Partida; onNova: () => void }) {
   const { partida, log, erro, aplicar, encerrarTurno } = useEstadoPartida(inicial);
+  const [acaoDiretaDe, setAcaoDiretaDe] = useState<Trabalhador | undefined>();
 
   const ativos = partida.trabalhadores.filter((t) => !t.colapsado);
   const antagonistasVivos = partida.antagonistas.filter((a) => !a.derrotado);
   const podeAgir = partida.fase === 'emAndamento' && partida.turnoAtivoDe === 'jogadores';
+
+  // Estatísticas calculadas apenas quando a partida termina
+  const estatisticasFinais = useMemo(() => {
+    if (partida.fase === 'emAndamento') return null;
+    const eventos = log.map((e) => e.evento);
+    return calcularEstatisticasDeEventos(eventos, partida);
+  }, [partida.fase, log, partida]);
 
   return (
     <>
@@ -51,15 +62,14 @@ function PartidaUI({ inicial, onNova }: { inicial: Partida; onNova: () => void }
         </div>
       </div>
 
-      {partida.fase !== 'emAndamento' && (
-        <div className={`bandeira-fim ${partida.fase === 'vitoriaProletaria' ? 'vitoria' : 'derrota'}`}>
-          <h2>{partida.fase === 'vitoriaProletaria' ? '★ A CLASSE VENCEU' : 'A METRÓPOLE ESMAGOU'}</h2>
-          <p>
-            {partida.fase === 'vitoriaProletaria'
-              ? 'Os meios de produção estão na mão do Conselho. O Tempo Excedente foi convertido em Tempo Livre.'
-              : 'Os trabalhadores caíram. Mas a luta apenas começou — a história continua.'}
-          </p>
-        </div>
+      {partida.fase !== 'emAndamento' && estatisticasFinais && (
+        <TelaFinal
+          fase={partida.fase}
+          estatisticas={estatisticasFinais}
+          trabalhadores={inicial.trabalhadores}
+          antagonistas={inicial.antagonistas}
+          onNova={onNova}
+        />
       )}
 
       {erro && <div className="painel vermelho" style={{ margin: 24 }}>⚠ {erro}</div>}
@@ -87,6 +97,7 @@ function PartidaUI({ inicial, onNova }: { inicial: Partida; onNova: () => void }
                     antagonistas={antagonistasVivos}
                     organizacao={partida.organizacao}
                     aplicar={aplicar}
+                    abrirAcaoDireta={() => setAcaoDiretaDe(t)}
                   />
                 ) : null
               }
@@ -94,6 +105,29 @@ function PartidaUI({ inicial, onNova }: { inicial: Partida; onNova: () => void }
           ))}
         </div>
       </div>
+
+      {acaoDiretaDe && (
+        <DialogoAcaoDireta
+          executor={acaoDiretaDe}
+          antagonistas={antagonistasVivos}
+          onCancelar={() => setAcaoDiretaDe(undefined)}
+          onConfirmar={(d) => {
+            aplicar({
+              tipo: 'acaoDireta',
+              executorId: acaoDiretaDe.id,
+              parametros: {
+                intencao: d.intencao,
+                eixo: d.eixo,
+                danoAoCapitalSeSucesso: d.danoSeSucesso,
+              },
+              alvoAntagonistaId: d.alvoAntagonistaId,
+              rolagem: d.rolagem,
+              custoEscolhido: d.custo,
+            });
+            setAcaoDiretaDe(undefined);
+          }}
+        />
+      )}
     </>
   );
 }
@@ -104,9 +138,10 @@ interface AcoesProps {
   antagonistas: ReadonlyArray<Partida['antagonistas'][number]>;
   organizacao: Partida['organizacao'];
   aplicar: (cmd: Comando) => void;
+  abrirAcaoDireta: () => void;
 }
 
-function AcoesTrabalhador({ trabalhador, outros, antagonistas, organizacao, aplicar }: AcoesProps) {
+function AcoesTrabalhador({ trabalhador, outros, antagonistas, organizacao, aplicar, abrirAcaoDireta }: AcoesProps) {
   const [alvoSolid, setAlvoSolid] = useState(outros[0]?.id ?? '');
   const alvoAntag = antagonistas[0];
 
@@ -161,6 +196,10 @@ function AcoesTrabalhador({ trabalhador, outros, antagonistas, organizacao, apli
         Descansar
       </button>
 
+      <button className="secundaria" onClick={abrirAcaoDireta}>
+        Ação Direta (1d6)
+      </button>
+
       {alvoAntag && organizacao.nivel >= 2 && (
         <button
           className="primaria"
@@ -177,6 +216,25 @@ function AcoesTrabalhador({ trabalhador, outros, antagonistas, organizacao, apli
           onClick={() => aplicar({ tipo: 'greveGeral', antagonistaId: alvoAntag.id })}
         >
           GREVE GERAL
+        </button>
+      )}
+      {organizacao.nivel >= 3 && (
+        <button
+          className="secundaria"
+          disabled={organizacao.fundoDeGreve.tl < 10}
+          onClick={() => aplicar({ tipo: 'manifestacaoDeMassas' })}
+        >
+          MANIFESTAÇÃO (–10 TL Fundo)
+        </button>
+      )}
+      {organizacao.nivel >= 3 && (
+        <button
+          className="secundaria"
+          disabled={organizacao.fundoDeGreve.tl < 15 || organizacao.fundoDeGreve.cm < 5}
+          onClick={() => aplicar({ tipo: 'escolaDeFormacao' })}
+          title="Imuniza permanentemente toda a classe contra Alienação e Fetichismo"
+        >
+          ESCOLA DE FORMAÇÃO (–15 TL, –5 CM)
         </button>
       )}
       {alvoAntag && organizacao.nivel >= 4 && (

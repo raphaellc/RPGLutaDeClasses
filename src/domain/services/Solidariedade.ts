@@ -27,6 +27,9 @@ export function executarSolidariedade(
   if (doador.colapsado || receptor.colapsado) {
     return { ok: false, motivo: 'Personagem colapsado não participa de solidariedade.' };
   }
+  if (doador.status.some((s) => s.tipo === 'alienacao')) {
+    return { ok: false, motivo: 'Sob Alienação, o doador desconfia dos camaradas e recusa o gesto.' };
+  }
   if (doador.recursos.cm < CM_DOADO) {
     return { ok: false, motivo: 'Doador na miséria absoluta — sem CM para transferir.' };
   }

@@ -1,5 +1,6 @@
 export * from './use-cases/CriarPartida';
 export * from './use-cases/AcoesDoTurno';
+export * from './use-cases/IniciarAcaoDireta';
 export * from './game-modes/MotorSimulado';
 export * from './game-modes/MotorTurnoATurno';
 export * from './npc/EstrategiaCapital';
