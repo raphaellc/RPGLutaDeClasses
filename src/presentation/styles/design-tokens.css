@@ -1,0 +1,35 @@
+/*
+ * O Capital — Design Tokens
+ * Construtivismo Russo + Brutalismo Digital ("Metrópole-Máquina").
+ * Sem cantos arredondados, sem sombras suaves, sem gradientes.
+ */
+:root {
+  /* Cores */
+  --vermelho-revolucao: #d92121;
+  --vermelho-escuro: #8a1313;
+  --ouro-operario: #f2c94c;
+  --preto-carvao: #121212;
+  --cinza-chumbo-escuro: #2a2a2a;
+  --cinza-chumbo: #3a3a3a;
+  --cinza-chumbo-claro: #4f4f4f;
+  --branco-manifesto: #e0e0e0;
+  --branco-manifesto-2: #cfcfcf;
+
+  /* Tipografia */
+  --fonte-titulo: 'Bebas Neue', 'Oswald', 'Impact', 'Arial Black', sans-serif;
+  --fonte-corpo: 'JetBrains Mono', 'Roboto Mono', 'Courier New', monospace;
+
+  /* Espaçamento */
+  --esp-1: 4px;
+  --esp-2: 8px;
+  --esp-3: 12px;
+  --esp-4: 16px;
+  --esp-5: 24px;
+  --esp-6: 32px;
+  --esp-7: 48px;
+
+  /* Bordas */
+  --borda-grossa: 3px solid var(--branco-manifesto);
+  --borda-vermelha: 3px solid var(--vermelho-revolucao);
+  --borda-fina: 1px solid var(--cinza-chumbo-claro);
+}
