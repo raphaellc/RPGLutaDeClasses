@@ -1,14 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Partida } from '@domain/entities/Partida';
-import { Trabalhador } from '@domain/entities/Trabalhador';
-import { Antagonista } from '@domain/entities/Antagonista';
-import { rodarSimulacao, PassoSimulacao, EstatisticasSimulacao } from '@application/game-modes/MotorSimulado';
+import { rodarSimulacao, PassoSimulacao } from '@application/game-modes/MotorSimulado';
 import { Comando } from '@application/use-cases/AcoesDoTurno';
 import { CartaoTrabalhador } from '../components/CartaoTrabalhador';
 import { CartaoAntagonista } from '../components/CartaoAntagonista';
 import { PainelOrganizacao } from '../components/PainelOrganizacao';
 import { LogNarrativo } from '../components/LogNarrativo';
+import { TelaFinal } from '../components/TelaFinal';
 import { EntradaLog } from '../hooks/useEstadoPartida';
 
 function carregarPartidaInicial(): Partida | null {
@@ -79,88 +78,6 @@ function labelComando(cmd: Comando, partida: Partida): string {
     default:
       return '…';
   }
-}
-
-// ── Tela final ────────────────────────────────────────────────────────────────
-
-function TelaFinal({
-  partidaFinal,
-  stats,
-  trabalhadores,
-  antagonistas,
-  onNova,
-}: {
-  partidaFinal: Partida;
-  stats: EstatisticasSimulacao;
-  trabalhadores: ReadonlyArray<Trabalhador>;
-  antagonistas: ReadonlyArray<Antagonista>;
-  onNova: () => void;
-}) {
-  const vitoria = partidaFinal.fase === 'vitoriaProletaria';
-
-  const nomeAnt = (id: string) => antagonistas.find((a) => a.id === id)?.nome ?? id;
-  const nomeTrab = (id: string) => trabalhadores.find((t) => t.id === id)?.nome ?? id;
-
-  return (
-    <div
-      className={`painel ${vitoria ? '' : 'vermelho'}`}
-      style={{ margin: '24px auto', maxWidth: 680, padding: '32px 40px' }}
-    >
-      <h2 style={{ fontFamily: 'var(--fonte-titulo)', fontSize: 36, marginBottom: 16 }}>
-        {vitoria ? '★ A CLASSE VENCEU' : 'A METRÓPOLE ESMAGOU'}
-      </h2>
-
-      <p style={{ color: 'var(--branco-manifesto-2)', fontStyle: 'italic', marginBottom: 24 }}>
-        {vitoria
-          ? 'Os meios de produção foram expropriados. O Tempo Excedente torna-se Tempo Livre. O Conselho Operário governa.'
-          : 'Os trabalhadores caíram exaustos. O Capital acumulou mais uma vitória — mas a história da luta continua.'}
-      </p>
-
-      <table className="tabela-recursos" style={{ width: '100%', marginBottom: 24 }}>
-        <tbody>
-          <tr>
-            <td><strong>Turnos jogados</strong></td>
-            <td>{stats.turnosJogados}</td>
-          </tr>
-          <tr>
-            <td><strong>Antagonistas derrotados</strong></td>
-            <td>
-              {stats.antagonistasDerrotados.length === 0
-                ? '—'
-                : stats.antagonistasDerrotados.map(nomeAnt).join(', ')}
-            </td>
-          </tr>
-          <tr>
-            <td><strong>Trabalhadores colapsados</strong></td>
-            <td>
-              {stats.trabalhadoresColapsados.length === 0
-                ? 'Nenhum'
-                : stats.trabalhadoresColapsados.map(nomeTrab).join(', ')}
-            </td>
-          </tr>
-          {stats.greveGeralConvocada && (
-            <tr>
-              <td colSpan={2} style={{ color: 'var(--ouro-operario)' }}>★ Greve Geral convocada</td>
-            </tr>
-          )}
-          {stats.escolaFundada && (
-            <tr>
-              <td colSpan={2} style={{ color: 'var(--ouro-operario)' }}>★ Escola de Formação fundada</td>
-            </tr>
-          )}
-          {stats.expropriado && (
-            <tr>
-              <td colSpan={2} style={{ color: 'var(--ouro-operario)' }}>★ Expropriação realizada</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-
-      <div className="controles">
-        <button className="primaria" onClick={onNova}>Nova Partida</button>
-      </div>
-    </div>
-  );
 }
 
 // ── UI principal ──────────────────────────────────────────────────────────────
@@ -258,8 +175,8 @@ function SimulacaoUI({ inicial, onNova }: { inicial: Partida; onNova: () => void
       {/* ── Tela final (sobreposta ao tabuleiro quando termina e está no último passo) ── */}
       {terminado && partidaFinal.fase !== 'emAndamento' && (
         <TelaFinal
-          partidaFinal={partidaFinal}
-          stats={estatisticas}
+          fase={partidaFinal.fase}
+          estatisticas={estatisticas}
           trabalhadores={inicial.trabalhadores}
           antagonistas={inicial.antagonistas}
           onNova={onNova}

@@ -3,12 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Partida } from '@domain/entities/Partida';
 import { Trabalhador } from '@domain/entities/Trabalhador';
 import { Comando } from '@application/use-cases/AcoesDoTurno';
+import { calcularEstatisticasDeEventos } from '@application/use-cases/EstatisticasPartida';
 import { useEstadoPartida } from '../hooks/useEstadoPartida';
 import { DialogoAcaoDireta } from '../components/DialogoAcaoDireta';
 import { CartaoTrabalhador } from '../components/CartaoTrabalhador';
 import { CartaoAntagonista } from '../components/CartaoAntagonista';
 import { PainelOrganizacao } from '../components/PainelOrganizacao';
 import { LogNarrativo } from '../components/LogNarrativo';
+import { TelaFinal } from '../components/TelaFinal';
 
 function carregarPartidaInicial(): Partida | null {
   try {
@@ -40,6 +42,13 @@ function PartidaUI({ inicial, onNova }: { inicial: Partida; onNova: () => void }
   const antagonistasVivos = partida.antagonistas.filter((a) => !a.derrotado);
   const podeAgir = partida.fase === 'emAndamento' && partida.turnoAtivoDe === 'jogadores';
 
+  // Estatísticas calculadas apenas quando a partida termina
+  const estatisticasFinais = useMemo(() => {
+    if (partida.fase === 'emAndamento') return null;
+    const eventos = log.map((e) => e.evento);
+    return calcularEstatisticasDeEventos(eventos, partida);
+  }, [partida.fase, log, partida]);
+
   return (
     <>
       <div className="cabecalho" style={{ borderTop: '1px solid var(--cinza-chumbo-claro)' }}>
@@ -53,15 +62,14 @@ function PartidaUI({ inicial, onNova }: { inicial: Partida; onNova: () => void }
         </div>
       </div>
 
-      {partida.fase !== 'emAndamento' && (
-        <div className={`bandeira-fim ${partida.fase === 'vitoriaProletaria' ? 'vitoria' : 'derrota'}`}>
-          <h2>{partida.fase === 'vitoriaProletaria' ? '★ A CLASSE VENCEU' : 'A METRÓPOLE ESMAGOU'}</h2>
-          <p>
-            {partida.fase === 'vitoriaProletaria'
-              ? 'Os meios de produção estão na mão do Conselho. O Tempo Excedente foi convertido em Tempo Livre.'
-              : 'Os trabalhadores caíram. Mas a luta apenas começou — a história continua.'}
-          </p>
-        </div>
+      {partida.fase !== 'emAndamento' && estatisticasFinais && (
+        <TelaFinal
+          fase={partida.fase}
+          estatisticas={estatisticasFinais}
+          trabalhadores={inicial.trabalhadores}
+          antagonistas={inicial.antagonistas}
+          onNova={onNova}
+        />
       )}
 
       {erro && <div className="painel vermelho" style={{ margin: 24 }}>⚠ {erro}</div>}

@@ -5,6 +5,7 @@ import { aplicarComando, Comando } from '../use-cases/AcoesDoTurno';
 import { planejarTurnoSistema } from '../npc/EstrategiaCapital';
 import { planejarTurnoTrabalhadores } from '../npc/EstrategiaProletariado';
 import { DadoCriptografico } from '@infrastructure/rng/DadoCriptografico';
+import { calcularEstatisticasDeEventos } from '../use-cases/EstatisticasPartida';
 
 /**
  * Motor de Simulação. Roda automaticamente até a partida terminar
@@ -90,35 +91,10 @@ export function rodarSimulacao(
     if (!algumProgresso && partida.turno > maxTurnos / 2) break;
   }
 
+  const todosEventos = passos.flatMap((p) => p.eventos);
   return {
     partidaFinal: partida,
     passos,
-    estatisticas: calcularEstatisticas(partida, passos),
-  };
-}
-
-function calcularEstatisticas(
-  partidaFinal: Partida,
-  passos: ReadonlyArray<PassoSimulacao>,
-): EstatisticasSimulacao {
-  const todosEventos = passos.flatMap((p) => p.eventos);
-
-  const trabalhadoresColapsados = todosEventos
-    .filter((e) => e.tipo === 'colapso')
-    .map((e) => (e.tipo === 'colapso' ? e.trabalhadorId : ''))
-    .filter(Boolean);
-
-  const antagonistasDerrotados = todosEventos
-    .filter((e) => e.tipo === 'antagonistaDerrotado')
-    .map((e) => (e.tipo === 'antagonistaDerrotado' ? e.antagonistaId : ''))
-    .filter(Boolean);
-
-  return {
-    turnosJogados: partidaFinal.turno,
-    trabalhadoresColapsados: [...new Set(trabalhadoresColapsados)],
-    antagonistasDerrotados: [...new Set(antagonistasDerrotados)],
-    greveGeralConvocada: todosEventos.some((e) => e.tipo === 'greveGeralConvocada'),
-    escolaFundada: passos.some((p) => p.comando.tipo === 'escolaDeFormacao' && !p.erro),
-    expropriado: todosEventos.some((e) => e.tipo === 'expropriacao'),
+    estatisticas: calcularEstatisticasDeEventos(todosEventos, partida),
   };
 }
