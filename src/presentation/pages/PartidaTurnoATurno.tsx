@@ -12,6 +12,7 @@ import { PainelOrganizacao } from '../components/PainelOrganizacao';
 import { LogNarrativo } from '../components/LogNarrativo';
 import { TelaFinal } from '../components/TelaFinal';
 import { PainelReferencia } from '../components/PainelReferencia';
+import { RelatorioCapital } from '../components/RelatorioCapital';
 
 function carregarPartidaInicial(): Partida | null {
   try {
@@ -36,7 +37,7 @@ export function PartidaTurnoATurno() {
 }
 
 function PartidaUI({ inicial, onNova }: { inicial: Partida; onNova: () => void }) {
-  const { partida, log, erro, aplicar, encerrarTurno } = useEstadoPartida(inicial);
+  const { partida, log, erro, aplicar, encerrarTurno, relatorioCapital, limparRelatorio } = useEstadoPartida(inicial);
   const [acaoDiretaDe, setAcaoDiretaDe] = useState<Trabalhador | undefined>();
   const [verReferencia, setVerReferencia] = useState(false);
 
@@ -110,6 +111,14 @@ function PartidaUI({ inicial, onNova }: { inicial: Partida; onNova: () => void }
       </div>
 
       {verReferencia && <PainelReferencia onFechar={() => setVerReferencia(false)} />}
+
+      {relatorioCapital.length > 0 && partida.fase === 'emAndamento' && (
+        <RelatorioCapital
+          turno={partida.turno - 1}
+          eventos={relatorioCapital}
+          onFechar={limparRelatorio}
+        />
+      )}
 
       {acaoDiretaDe && (
         <DialogoAcaoDireta
