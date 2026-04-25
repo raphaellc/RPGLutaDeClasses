@@ -11,6 +11,7 @@ import { CartaoAntagonista } from '../components/CartaoAntagonista';
 import { PainelOrganizacao } from '../components/PainelOrganizacao';
 import { LogNarrativo } from '../components/LogNarrativo';
 import { TelaFinal } from '../components/TelaFinal';
+import { PainelReferencia } from '../components/PainelReferencia';
 
 function carregarPartidaInicial(): Partida | null {
   try {
@@ -37,6 +38,7 @@ export function PartidaTurnoATurno() {
 function PartidaUI({ inicial, onNova }: { inicial: Partida; onNova: () => void }) {
   const { partida, log, erro, aplicar, encerrarTurno } = useEstadoPartida(inicial);
   const [acaoDiretaDe, setAcaoDiretaDe] = useState<Trabalhador | undefined>();
+  const [verReferencia, setVerReferencia] = useState(false);
 
   const ativos = partida.trabalhadores.filter((t) => !t.colapsado);
   const antagonistasVivos = partida.antagonistas.filter((a) => !a.derrotado);
@@ -58,6 +60,7 @@ function PartidaUI({ inicial, onNova }: { inicial: Partida; onNova: () => void }
         </div>
         <div className="controles">
           <button className="secundaria" onClick={onNova}>Nova Partida</button>
+          <button onClick={() => setVerReferencia(true)} title="Referência rápida de regras" style={{ minWidth: 36 }}>?</button>
           <button className="primaria" disabled={!podeAgir} onClick={encerrarTurno}>Encerrar Turno</button>
         </div>
       </div>
@@ -105,6 +108,8 @@ function PartidaUI({ inicial, onNova }: { inicial: Partida; onNova: () => void }
           ))}
         </div>
       </div>
+
+      {verReferencia && <PainelReferencia onFechar={() => setVerReferencia(false)} />}
 
       {acaoDiretaDe && (
         <DialogoAcaoDireta
