@@ -55,9 +55,15 @@ function PartidaUI({ inicial, onNova }: { inicial: Partida; onNova: () => void }
   return (
     <>
       <div className="cabecalho" style={{ borderTop: '1px solid var(--cinza-chumbo-claro)' }}>
-        <div>
-          <span className="badge">TURNO {partida.turno}</span>{' '}
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+          <span className="badge">TURNO {partida.turno}</span>
           <span className="badge ouro">{partida.turnoAtivoDe === 'jogadores' ? 'Trabalhadores' : 'Voz do Sistema'}</span>
+          {partida.dificuldade !== 'normal' && (
+            <span className={`badge ${partida.dificuldade === 'dificil' ? 'vermelho' : ''}`}
+                  style={partida.dificuldade === 'facil' ? { background: 'var(--cinza-chumbo)', color: 'var(--branco-manifesto-2)' } : {}}>
+              {partida.dificuldade === 'facil' ? 'FÁCIL' : 'DIFÍCIL'}
+            </span>
+          )}
         </div>
         <div className="controles">
           <button className="secundaria" onClick={onNova}>Nova Partida</button>
@@ -159,6 +165,26 @@ function AcoesTrabalhador({ trabalhador, outros, antagonistas, organizacao, apli
   const [alvoSolid, setAlvoSolid] = useState(outros[0]?.id ?? '');
   const alvoAntag = antagonistas[0];
 
+  const temFetichismo = trabalhador.status.some((s) => s.tipo === 'fetichismo');
+  const semAliados   = outros.length === 0;
+  const semCM        = trabalhador.recursos.cm < 1;
+  const naoTradutor  = trabalhador.arquetipo !== 'tradutorVerdades';
+  const semTLDesMist = trabalhador.recursos.tl < 3;
+  const naoFantasma  = trabalhador.arquetipo !== 'fantasmaRede';
+  const semAliadoComStatus = !outros.some((o) => o.status.length > 0);
+
+  const razaoSolidariedade =
+    semAliados   ? 'Nenhum aliado disponível' :
+    semCM        ? 'Sem Condições Materiais (necessário: 1 CM)' :
+    temFetichismo ? 'Fetichismo ativo — Solidariedade bloqueada' : undefined;
+
+  const razaoDesmistiticar =
+    naoTradutor      ? 'Exclusivo do Tradutor de Verdades' :
+    semTLDesMist     ? 'Sem Tempo Livre (necessário: 3 TL)' :
+    semAliadoComStatus ? 'Nenhum aliado com status ativo' : undefined;
+
+  const razaoFolgar = naoFantasma ? 'Exclusivo do Fantasma da Rede' : undefined;
+
   return (
     <>
       <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -168,7 +194,8 @@ function AcoesTrabalhador({ trabalhador, outros, antagonistas, organizacao, apli
           ))}
         </select>
         <button
-          disabled={!alvoSolid || trabalhador.recursos.cm < 1}
+          disabled={semAliados || semCM || temFetichismo}
+          title={razaoSolidariedade}
           onClick={() => aplicar({ tipo: 'solidariedade', doadorId: trabalhador.id, receptorId: alvoSolid })}
         >
           Solidariedade (–1 CM)
@@ -176,6 +203,7 @@ function AcoesTrabalhador({ trabalhador, outros, antagonistas, organizacao, apli
       </div>
 
       <button
+        title={temFetichismo ? 'Fetichismo ativo — Contribuição bloqueada' : 'Envia CM, TL e CC ao Fundo de Greve'}
         onClick={() => aplicar({
           tipo: 'contribuirOrganizacao',
           trabalhadorId: trabalhador.id,
@@ -188,29 +216,32 @@ function AcoesTrabalhador({ trabalhador, outros, antagonistas, organizacao, apli
       </button>
 
       <button
-        disabled={trabalhador.arquetipo !== 'tradutorVerdades' || trabalhador.recursos.tl < 3}
+        disabled={naoTradutor || semTLDesMist || semAliadoComStatus}
+        title={razaoDesmistiticar ?? 'Cura um status de qualquer aliado (–3 TL)'}
         onClick={() => {
           const alvo = outros.find((o) => o.status.length > 0);
           if (alvo) aplicar({ tipo: 'curarStatus', alvoId: alvo.id, status: alvo.status[0]!.tipo });
         }}
       >
-        Desmistificar
+        Desmistificar (–3 TL)
       </button>
 
       <button
-        disabled={trabalhador.arquetipo !== 'fantasmaRede'}
+        disabled={naoFantasma}
+        title={razaoFolgar ?? 'Troca –2 CM por +5 TL'}
         onClick={() => aplicar({ tipo: 'cicloSemanal', trabalhadorId: trabalhador.id, escolha: 'folgar' })}
       >
         Folgar (–2 CM, +5 TL)
       </button>
 
       <button
+        title="Recupera PV e TL segundo o arquétipo"
         onClick={() => aplicar({ tipo: 'cicloSemanal', trabalhadorId: trabalhador.id, escolha: 'rodar' })}
       >
         Descansar
       </button>
 
-      <button className="secundaria" onClick={abrirAcaoDireta}>
+      <button className="secundaria" title="Rola 1d6 — sucesso (4–6) causa dano ao Capital" onClick={abrirAcaoDireta}>
         Ação Direta (1d6)
       </button>
 
@@ -218,6 +249,7 @@ function AcoesTrabalhador({ trabalhador, outros, antagonistas, organizacao, apli
         <button
           className="primaria"
           disabled={organizacao.fundoDeGreve.cm < 5}
+          title={organizacao.fundoDeGreve.cm < 5 ? `Fundo insuficiente (${organizacao.fundoDeGreve.cm}/5 CM)` : 'Bloqueia o antagonista por 1 turno (–5 CM do Fundo)'}
           onClick={() => aplicar({ tipo: 'piquete', antagonistaId: alvoAntag.id })}
         >
           PIQUETE (–5 CM Fundo)
@@ -227,6 +259,11 @@ function AcoesTrabalhador({ trabalhador, outros, antagonistas, organizacao, apli
         <button
           className="primaria"
           disabled={organizacao.fundoDeGreve.cm < 15 || organizacao.fundoDeGreve.tl < 20}
+          title={
+            organizacao.fundoDeGreve.cm < 15 ? `Fundo insuficiente (${organizacao.fundoDeGreve.cm}/15 CM)` :
+            organizacao.fundoDeGreve.tl < 20 ? `Fundo insuficiente (${organizacao.fundoDeGreve.tl}/20 TL)` :
+            'Derrota o antagonista (–15 CM e –20 TL do Fundo)'
+          }
           onClick={() => aplicar({ tipo: 'greveGeral', antagonistaId: alvoAntag.id })}
         >
           GREVE GERAL
@@ -236,6 +273,7 @@ function AcoesTrabalhador({ trabalhador, outros, antagonistas, organizacao, apli
         <button
           className="secundaria"
           disabled={organizacao.fundoDeGreve.tl < 10}
+          title={organizacao.fundoDeGreve.tl < 10 ? `Fundo insuficiente (${organizacao.fundoDeGreve.tl}/10 TL)` : 'Escudo coletivo — mitiga próximo ataque (–10 TL do Fundo)'}
           onClick={() => aplicar({ tipo: 'manifestacaoDeMassas' })}
         >
           MANIFESTAÇÃO (–10 TL Fundo)
@@ -245,8 +283,12 @@ function AcoesTrabalhador({ trabalhador, outros, antagonistas, organizacao, apli
         <button
           className="secundaria"
           disabled={organizacao.fundoDeGreve.tl < 15 || organizacao.fundoDeGreve.cm < 5}
+          title={
+            organizacao.fundoDeGreve.tl < 15 ? `Fundo insuficiente (${organizacao.fundoDeGreve.tl}/15 TL)` :
+            organizacao.fundoDeGreve.cm < 5  ? `Fundo insuficiente (${organizacao.fundoDeGreve.cm}/5 CM)` :
+            'Imunidade permanente a Alienação e Fetichismo para toda a classe (–15 TL, –5 CM)'
+          }
           onClick={() => aplicar({ tipo: 'escolaDeFormacao' })}
-          title="Imuniza permanentemente toda a classe contra Alienação e Fetichismo"
         >
           ESCOLA DE FORMAÇÃO (–15 TL, –5 CM)
         </button>

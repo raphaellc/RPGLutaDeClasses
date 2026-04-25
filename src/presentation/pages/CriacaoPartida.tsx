@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ModoJogo } from '@domain/entities/Partida';
+import { DificuldadeJogo, ModoJogo } from '@domain/entities/Partida';
 import { ArquetipoTrabalhador } from '@domain/entities/Trabalhador';
 import { ArquetipoCapital } from '@domain/entities/Antagonista';
 import { criarPartida, DefinicaoTrabalhador, DefinicaoAntagonista } from '@application/use-cases/CriarPartida';
@@ -30,6 +30,7 @@ const TRABALHADORES_PADRAO: DefinicaoTrabalhador[] = [
 export function CriacaoPartida() {
   const nav = useNavigate();
   const [modo, setModo] = useState<ModoJogo>('turnoATurno');
+  const [dificuldade, setDificuldade] = useState<DificuldadeJogo>('normal');
   const [trabalhadores, setTrabalhadores] = useState<DefinicaoTrabalhador[]>(TRABALHADORES_PADRAO);
   const [antagonista, setAntagonista] = useState<ArquetipoCapital | 'todos'>('senhorNuvens');
   const [nomeOrg, setNomeOrg] = useState('A Faísca');
@@ -55,7 +56,7 @@ export function CriacaoPartida() {
           { arquetipo: 'estadoBurgues' },
         ]
       : [{ arquetipo: antagonista }];
-    const partida = criarPartida({ modo, trabalhadores, antagonistas: ants, nomeOrganizacao: nomeOrg });
+    const partida = criarPartida({ modo, dificuldade, trabalhadores, antagonistas: ants, nomeOrganizacao: nomeOrg });
     sessionStorage.setItem('rpg-luta:partida-corrente', JSON.stringify(partida));
     // Persiste imediatamente para o Diário da Luta (turno-a-turno) e para "Continuar"
     if (modo === 'turnoATurno') void repo.salvar(partida);
@@ -75,6 +76,18 @@ export function CriacaoPartida() {
         <label>
           <input type="radio" checked={modo === 'simulado'} onChange={() => setModo('simulado')} /> Simulado (autônomo)
         </label>
+      </div>
+
+      <h3 className="subtitulo">Dificuldade</h3>
+      <div className="controles">
+        {(['facil', 'normal', 'dificil'] as DificuldadeJogo[]).map((d) => (
+          <label key={d} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <input type="radio" checked={dificuldade === d} onChange={() => setDificuldade(d)} />
+            {d === 'facil'   && 'Fácil — Capital com 65% de capital inicial'}
+            {d === 'normal'  && 'Normal — Capital padrão'}
+            {d === 'dificil' && 'Difícil — Capital com 150% de capital inicial'}
+          </label>
+        ))}
       </div>
 
       <h3 className="subtitulo">Organização</h3>

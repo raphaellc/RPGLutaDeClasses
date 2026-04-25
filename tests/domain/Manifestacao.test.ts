@@ -6,6 +6,7 @@ import { Partida } from '@domain/entities/Partida';
 function partidaNivel(nivel: 1 | 2 | 3 | 4, fundoTl: number): Partida {
   const base = criarPartida({
     modo: 'turnoATurno',
+      dificuldade: 'normal',
     trabalhadores: [
       { nome: 'Joana', arquetipo: 'ferreiroEngrenagens' },
       { nome: 'Beto', arquetipo: 'fantasmaRede' },

@@ -8,6 +8,7 @@ import { Partida } from '@domain/entities/Partida';
 function partidaComNuvens(turno = 0): Partida {
   const base = criarPartida({
     modo: 'turnoATurno',
+      dificuldade: 'normal',
     trabalhadores: [
       { nome: 'Joana', arquetipo: 'ferreiroEngrenagens' },
       { nome: 'Beto', arquetipo: 'fantasmaRede' },
@@ -50,6 +51,7 @@ describe('Comando ativarTarifaDinamica', () => {
   it('não afeta outros antagonistas', () => {
     const base = criarPartida({
       modo: 'turnoATurno',
+      dificuldade: 'normal',
       trabalhadores: [{ nome: 'Joana', arquetipo: 'ferreiroEngrenagens' }],
       antagonistas: [{ arquetipo: 'senhorNuvens' }, { arquetipo: 'capitalistaIndustrial' }],
     });
@@ -114,6 +116,7 @@ describe('EstrategiaCapital — Senhor das Nuvens usa Tarifa Dinâmica', () => {
     const { planejarTurnoSistema } = await import('@application/npc/EstrategiaCapital');
     const p = criarPartida({
       modo: 'turnoATurno',
+      dificuldade: 'normal',
       trabalhadores: [{ nome: 'Joana', arquetipo: 'ferreiroEngrenagens' }],
       antagonistas: [{ arquetipo: 'capitalistaIndustrial' }],
     });

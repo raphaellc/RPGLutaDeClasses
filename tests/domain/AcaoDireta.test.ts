@@ -95,6 +95,7 @@ describe('Comando acaoDireta — integração com aplicarComando', () => {
   it('aplica dano ao alvo antagonista no sucesso pleno e emite evento detalhado', () => {
     const partida = criarPartida({
       modo: 'turnoATurno',
+      dificuldade: 'normal',
       trabalhadores: [{ nome: 'Joana', arquetipo: 'ferreiroEngrenagens' }],
       antagonistas: [{ arquetipo: 'capitalistaIndustrial' }],
     });
@@ -119,6 +120,7 @@ describe('Comando acaoDireta — integração com aplicarComando', () => {
   it('derrota a antagonistas se o dano zera o Capital Acumulado', () => {
     const partida = criarPartida({
       modo: 'turnoATurno',
+      dificuldade: 'normal',
       trabalhadores: [{ nome: 'Joana', arquetipo: 'ferreiroEngrenagens' }],
       antagonistas: [{ arquetipo: 'senhorNuvens' }],
     });

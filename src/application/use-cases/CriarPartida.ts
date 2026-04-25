@@ -1,6 +1,6 @@
 import { Antagonista, ArquetipoCapital } from '@domain/entities/Antagonista';
 import { Organizacao } from '@domain/entities/Organizacao';
-import { ModoJogo, Partida } from '@domain/entities/Partida';
+import { DificuldadeJogo, ModoJogo, Partida } from '@domain/entities/Partida';
 import { ArquetipoTrabalhador, Trabalhador } from '@domain/entities/Trabalhador';
 import { criarEixos } from '@domain/value-objects/EixosTensao';
 import { PERFIS } from '@domain/services/PerfilArquetipo';
@@ -21,15 +21,25 @@ export interface DefinicaoAntagonista {
 
 export interface EntradaCriarPartida {
   modo: ModoJogo;
+  dificuldade?: DificuldadeJogo;
   trabalhadores: ReadonlyArray<DefinicaoTrabalhador>;
   antagonistas: ReadonlyArray<DefinicaoAntagonista>;
   nomeOrganizacao?: string;
 }
 
+const MULTIPLICADOR_DIFICULDADE: Record<DificuldadeJogo, number> = {
+  facil:  0.65,
+  normal: 1.00,
+  dificil: 1.50,
+};
+
 const novoId = () =>
   globalThis.crypto?.randomUUID?.() ?? `id-${Math.random().toString(36).slice(2)}-${Date.now()}`;
 
 export function criarPartida(entrada: EntradaCriarPartida): Partida {
+  const dificuldade: DificuldadeJogo = entrada.dificuldade ?? 'normal';
+  const mult = MULTIPLICADOR_DIFICULDADE[dificuldade];
+
   const trabalhadores: Trabalhador[] = entrada.trabalhadores.map((d) => {
     const perfil = PERFIS[d.arquetipo];
     return {
@@ -48,12 +58,13 @@ export function criarPartida(entrada: EntradaCriarPartida): Partida {
 
   const antagonistas: Antagonista[] = entrada.antagonistas.map((d) => {
     const perfil = PERFIS_ANTAGONISTA[d.arquetipo];
+    const capital = Math.round(perfil.capitalAcumulado * mult);
     return {
       id: d.id ?? novoId(),
       nome: d.nome ?? perfil.nomePadrao,
       arquetipo: d.arquetipo,
-      capitalAcumulado: perfil.capitalAcumulado,
-      capitalAcumuladoMax: perfil.capitalAcumulado,
+      capitalAcumulado: capital,
+      capitalAcumuladoMax: capital,
       bloqueadoNoTurno: false,
       emTarifaDinamica: false,
       derrotado: false,
@@ -72,6 +83,7 @@ export function criarPartida(entrada: EntradaCriarPartida): Partida {
   return {
     id: novoId(),
     modo: entrada.modo,
+    dificuldade,
     turno: 1,
     turnoAtivoDe: 'jogadores',
     trabalhadores,

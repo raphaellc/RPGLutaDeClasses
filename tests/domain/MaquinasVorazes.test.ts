@@ -17,6 +17,7 @@ function capitalistaId(p: Partida): string {
 function partidaComCapitalista(): Partida {
   return criarPartida({
     modo: 'turnoATurno',
+      dificuldade: 'normal',
     trabalhadores: [
       { nome: 'Joana', arquetipo: 'ferreiroEngrenagens' },
       { nome: 'Beto', arquetipo: 'fantasmaRede' },
@@ -182,6 +183,7 @@ describe('EstrategiaCapital — Capitalista Industrial gera Máquinas Vorazes', 
     const { planejarTurnoSistema } = await import('@application/npc/EstrategiaCapital');
     const p = criarPartida({
       modo: 'turnoATurno',
+      dificuldade: 'normal',
       trabalhadores: [{ nome: 'Joana', arquetipo: 'ferreiroEngrenagens' }],
       antagonistas: [{ arquetipo: 'senhorNuvens' }],
     });

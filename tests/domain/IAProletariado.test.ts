@@ -10,6 +10,7 @@ import { Partida } from '@domain/entities/Partida';
 function partidaPadrao(): Partida {
   return criarPartida({
     modo: 'simulado',
+      dificuldade: 'normal',
     trabalhadores: [
       { nome: 'Joana', arquetipo: 'ferreiroEngrenagens' },
       { nome: 'Beto', arquetipo: 'fantasmaRede' },
