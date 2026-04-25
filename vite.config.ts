@@ -4,7 +4,13 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'node:path';
 
+// Em produção (GitHub Pages) o repo é servido sob /RPGLutaDeClasses/.
+// HashRouter não depende de rotas no servidor, mas os assets (JS/CSS/favicon)
+// precisam do base correto para serem encontrados.
+const base = process.env.GITHUB_PAGES ? '/RPGLutaDeClasses/' : '/';
+
 export default defineConfig({
+  base,
   plugins: [
     react(),
     VitePWA({
