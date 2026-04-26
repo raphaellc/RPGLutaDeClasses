@@ -5,6 +5,13 @@ const NOMES_ARQUETIPO: Record<string, string> = {
   ferreiroEngrenagens: 'Ferreiro de Engrenagens',
   fantasmaRede: 'Fantasma da Rede',
   tradutorVerdades: 'Tradutor de Verdades',
+  jornalistaMilitante: 'Jornalista Militante',
+};
+
+const NOMES_STATUS: Record<string, string> = {
+  alienacao:  'Alienação',
+  fetichismo: 'Fetichismo',
+  paralisado: 'Paralisado',
 };
 
 interface Props {
@@ -43,7 +50,7 @@ export function CartaoTrabalhador({ trabalhador: t, destaque, acoes }: Props) {
         )}
         {t.status.length > 0 && (
           <span className="badge vermelho" style={{ marginLeft: 8 }}>
-            ⛓ {t.status.map((s) => `${s.tipo} (${s.turnosRestantes}t)`).join(', ')}
+            ⛓ {t.status.map((s) => `${NOMES_STATUS[s.tipo] ?? s.tipo} (${s.turnosRestantes}t)`).join(', ')}
           </span>
         )}
       </div>

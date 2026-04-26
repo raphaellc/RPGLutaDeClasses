@@ -165,8 +165,10 @@ function AcoesTrabalhador({ trabalhador, outros, antagonistas, organizacao, apli
   const [alvoSolid, setAlvoSolid] = useState(outros[0]?.id ?? '');
   const alvoAntag = antagonistas[0];
 
-  const temFetichismo = trabalhador.status.some((s) => s.tipo === 'fetichismo');
-  const semAliados   = outros.length === 0;
+  const temFetichismo      = trabalhador.status.some((s) => s.tipo === 'fetichismo');
+  const eJornalista        = trabalhador.arquetipo === 'jornalistaMilitante';
+  const fetichimoNoGrupo   = [...outros, trabalhador].some((t) => t.status.some((s) => s.tipo === 'fetichismo'));
+  const semAliados         = outros.length === 0;
   const semCM        = trabalhador.recursos.cm < 1;
   const naoTradutor  = trabalhador.arquetipo !== 'tradutorVerdades';
   const semTLDesMist = trabalhador.recursos.tl < 3;
@@ -244,6 +246,21 @@ function AcoesTrabalhador({ trabalhador, outros, antagonistas, organizacao, apli
       <button className="secundaria" title="Rola 1d6 — sucesso (4–6) causa dano ao Capital" onClick={abrirAcaoDireta}>
         Ação Direta (1d6)
       </button>
+
+      {eJornalista && (
+        <button
+          className="secundaria"
+          disabled={trabalhador.recursos.tl < 4 || !fetichimoNoGrupo}
+          title={
+            trabalhador.recursos.tl < 4   ? 'Sem Tempo Livre (necessário: 4 TL)' :
+            !fetichimoNoGrupo              ? 'Nenhum Fetichismo ativo no grupo' :
+            'Remove Fetichismo de toda a classe (–4 TL)'
+          }
+          onClick={() => aplicar({ tipo: 'publicarDenuncia', jornalistaId: trabalhador.id })}
+        >
+          Publicar Denúncia (–4 TL)
+        </button>
+      )}
 
       {alvoAntag && organizacao.nivel >= 2 && (
         <button

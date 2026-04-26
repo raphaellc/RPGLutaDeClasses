@@ -28,4 +28,9 @@ export const PERFIS: Record<ArquetipoTrabalhador, PerfilInicial> = {
     recursos: recursos(60, 15, 3, 0),
     descricao: 'Intelectual Orgânico — vê as palavras invisíveis nos cartazes. Cura a Alienação.',
   },
+  jornalistaMilitante: {
+    limites: { pvMax: 65, tlMax: 30, cmMax: 6 },
+    recursos: recursos(55, 12, 2, 0),
+    descricao: 'Repórter de Base — expõe o Fetichismo ideológico. Publicar Denúncia cura Fetichismo de toda a classe.',
+  },
 };

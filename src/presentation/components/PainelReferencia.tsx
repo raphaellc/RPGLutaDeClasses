@@ -50,6 +50,7 @@ export function PainelReferencia({ onFechar }: Props) {
           <Linha chave="Ferreiro de Engrenagens" valor="Proletário Fabril. Descansar restaura PV completo e garante no mínimo 2 TL." />
           <Linha chave="Fantasma da Rede"        valor="Uberizado. Pode Folgar (–2 CM, +5 TL). Em queima constante — decai sem descanso." />
           <Linha chave="Tradutor de Verdades"    valor="Intelectual orgânico. Pode Desmistificar (–3 TL) para curar um status de aliado." />
+          <Linha chave="Jornalista Militante"   valor="Repórter de base. Pode Publicar Denúncia (–4 TL) para remover Fetichismo de TODA a classe de uma vez." />
         </section>
 
         {/* ── Status ── */}
@@ -69,6 +70,7 @@ export function PainelReferencia({ onFechar }: Props) {
           <Linha chave="Folgar"           valor="(Fantasma) –2 CM, +5 TL. Só disponível para o Fantasma da Rede." />
           <Linha chave="Descansar"        valor="Recupera PV e TL segundo o arquétipo. Não gasta recursos." />
           <Linha chave="Ação Direta"      valor="Rola 1d6. Sucesso (4–6): causa dano ao Capital. Falha (1–3): custo sem dano. Escolha eixo (PV/TL/CM) e intenção narrativa." />
+          <Linha chave="Publicar Denúncia" valor="(Jornalista, –4 TL) Remove Fetichismo de toda a classe de uma vez. Único antídoto coletivo contra o Estado Burguês." />
         </section>
 
         {/* ── Organização ── */}
