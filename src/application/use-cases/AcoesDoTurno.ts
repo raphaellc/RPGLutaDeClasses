@@ -41,6 +41,7 @@ export type Comando =
   | { tipo: 'maquinasVorazes'; antagonistaId: string; danoBase: number }
   | { tipo: 'policiaDeChoque'; antagonistaId: string; alvoId: string; danoPV: number; danoCM: number }
   | { tipo: 'ativarTarifaDinamica'; antagonistaId: string; multiplicador: number }
+  | { tipo: 'publicarDenuncia'; jornalistaId: string }
   | { tipo: 'avancarTurno' };
 
 export interface ResultadoComando {
@@ -304,6 +305,36 @@ export function aplicarComando(p: Partida, c: Comando): ResultadoComando {
         partida: { ...p, antagonistas: desbloqueados, trabalhadores, turnoAtivoDe: proxAtivo, turno: proxTurno },
         eventos,
       };
+    }
+
+    case 'publicarDenuncia': {
+      const CUSTO_TL = 4;
+      const jornalista = p.trabalhadores.find((x) => x.id === c.jornalistaId);
+      if (!jornalista) return { partida: p, eventos: [], erro: 'Jornalista não encontrada.' };
+      if (jornalista.arquetipo !== 'jornalistaMilitante') {
+        return { partida: p, eventos: [], erro: 'Apenas a Jornalista Militante pode publicar denúncias.' };
+      }
+      if (jornalista.recursos.tl < CUSTO_TL) {
+        return { partida: p, eventos: [], erro: `Sem Tempo Livre suficiente para publicar (necessário: ${CUSTO_TL} TL).` };
+      }
+      const temFetichismo = p.trabalhadores.some((t) => !t.colapsado && t.status.some((s) => s.tipo === 'fetichismo'));
+      if (!temFetichismo) {
+        return { partida: p, eventos: [{ tipo: 'narrativa', texto: 'Denúncia publicada — nenhum Fetichismo ativo a curar.' }] };
+      }
+      const eventos: EventoPartida[] = [{
+        tipo: 'narrativa',
+        texto: 'DENÚNCIA PUBLICADA! A reportagem de base expõe o Fetichismo — toda a classe se liberta da ilusão.',
+      }];
+      const novaJornalista: Trabalhador = { ...jornalista, recursos: { ...jornalista.recursos, tl: jornalista.recursos.tl - CUSTO_TL } };
+      const trabalhadores = p.trabalhadores.map((t) => {
+        if (t.colapsado) return t;
+        const hasFetichismo = t.status.some((s) => s.tipo === 'fetichismo');
+        if (!hasFetichismo) return t.id === jornalista.id ? novaJornalista : t;
+        const r = curarStatus(t.id === jornalista.id ? novaJornalista : t, 'fetichismo');
+        eventos.push(...r.eventos);
+        return r.alvo;
+      });
+      return { partida: { ...p, trabalhadores }, eventos };
     }
 
     case 'manifestacaoDeMassas': {

@@ -96,8 +96,11 @@ describe('EstrategiaCapital — Senhor das Nuvens usa Tarifa Dinâmica', () => {
 
   it('em Modo Pico o danoBruto de extrairMaisValia é dobrado', async () => {
     const { planejarTurnoSistema } = await import('@application/npc/EstrategiaCapital');
-    const pNormal = partidaComNuvens(1);
-    const pPico   = partidaComNuvens(3);
+    // Compara turnos no mesmo "tier" de escalonamento (Math.floor(turno/3)) para
+    // isolar o efeito do multiplicador de Pico — caso contrário o escalonamento
+    // por turno (+1 a cada 3 turnos) contamina a comparação.
+    const pNormal = partidaComNuvens(4); // 4 % 3 = 1 → sem Pico; floor(4/3) = 1
+    const pPico   = partidaComNuvens(3); // 3 % 3 = 0 → Pico;     floor(3/3) = 1
 
     const cmdsNormal = planejarTurnoSistema(pNormal);
     const cmdsPico   = planejarTurnoSistema(pPico);

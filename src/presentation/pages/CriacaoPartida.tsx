@@ -11,7 +11,8 @@ const repo = new LocalStoragePartidaRepository();
 const ARQ_OPCOES: { id: ArquetipoTrabalhador; nome: string; resumo: string }[] = [
   { id: 'ferreiroEngrenagens', nome: 'Ferreiro de Engrenagens', resumo: 'Proletário Fabril — descanso garantido.' },
   { id: 'fantasmaRede', nome: 'Fantasma da Rede', resumo: 'Uberizado — mobilidade, em queima constante.' },
-  { id: 'tradutorVerdades', nome: 'Tradutor de Verdades', resumo: 'Intelectual orgânico — defesa contra Alienação.' },
+  { id: 'tradutorVerdades', nome: 'Tradutor de Verdades', resumo: 'Intelectual orgânico — cura status de aliado.' },
+  { id: 'jornalistaMilitante', nome: 'Jornalista Militante', resumo: 'Repórter de base — Publicar Denúncia cura Fetichismo de todos (–4 TL).' },
 ];
 
 const ANT_OPCOES: { id: ArquetipoCapital | 'todos'; nome: string; descricao: string }[] = [

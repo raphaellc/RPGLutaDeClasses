@@ -28,7 +28,16 @@ export function planejarTurnoTrabalhadores(p: Partida, dado: Dado): Comando[] {
   const ativos = p.trabalhadores.filter((t) => !t.colapsado);
   if (ativos.length === 0) return comandos;
 
-  // 0) Desmistificar — Tradutor de Verdades cura status negativos.
+  // 0a) Publicar Denúncia — Jornalista remove Fetichismo de toda a classe.
+  const jornalista = ativos.find((t) => t.arquetipo === 'jornalistaMilitante' && t.recursos.tl >= 4);
+  if (jornalista) {
+    const fetichimoAtivo = ativos.some((t) => t.status.some((s) => s.tipo === 'fetichismo'));
+    if (fetichimoAtivo) {
+      comandos.push({ tipo: 'publicarDenuncia', jornalistaId: jornalista.id });
+    }
+  }
+
+  // 0b) Desmistificar — Tradutor de Verdades cura status negativos (um por vez).
   const tradutor = ativos.find((t) => t.arquetipo === 'tradutorVerdades' && t.recursos.tl >= 3);
   if (tradutor) {
     const aliadoComStatus = ativos.find((t) => t.id !== tradutor.id && t.status.length > 0);

@@ -10,7 +10,8 @@ import { StatusAtivo, StatusNegativo } from '../value-objects/Status';
 export type ArquetipoTrabalhador =
   | 'ferreiroEngrenagens'   // Proletário Fabril (regime 6x1, CM alto, descanso garantido)
   | 'fantasmaRede'           // Trabalhador Uberizado (regime 7x7, mobilidade, sem descanso)
-  | 'tradutorVerdades';      // Intelectual Orgânico (defesa mental, cura de status)
+  | 'tradutorVerdades'       // Intelectual Orgânico (defesa mental, cura de status)
+  | 'jornalistaMilitante';   // Repórter de Base (expõe Fetichismo em toda a classe, –4 TL)
 
 export interface Trabalhador {
   readonly id: string;
